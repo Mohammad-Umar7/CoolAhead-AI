@@ -1,0 +1,10 @@
+node_modules
+dist
+*.local
+.DS_Store
+.vite
+.claude
+*.log
+scripts/.cache
+__pycache__
+*.pt
