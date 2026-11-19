@@ -23,6 +23,8 @@ export default function Intro() {
   if (import.meta.env.DEV) (window as unknown as { __intro: IntroState }).__intro = state.current;
 
   useEffect(() => {
+    // for checking the last frame: #/?end
+    if (import.meta.env.DEV && window.location.hash.includes('end')) state.current.skip = true;
     const id = window.setInterval(() => {
       if (state.current.time >= BEAT.title) setStage((s) => (s === 'map' ? 'title' : s));
     }, 100);

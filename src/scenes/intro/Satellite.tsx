@@ -23,13 +23,15 @@ interface LayerSpec {
   span: number;
   /** width of the soft edge, as a share of the layer */
   edge: number;
+  /** the layer fades out in a ring round the campus, between these distances in metres, so no tile edge is ever seen */
+  ring: [number, number];
 }
 
 /** Only the ground round the building: it appears with the building and nowhere else. */
 const LAYERS: LayerSpec[] = [
-  { z: 16, span: 2, edge: 0.3 },
-  { z: 17, span: 3, edge: 0.2 },
-  { z: 18, span: 2, edge: 0.2 },
+  { z: 16, span: 3, edge: 0.02, ring: [700, 1600] },
+  { z: 17, span: 3, edge: 0.02, ring: [380, 800] },
+  { z: 18, span: 2, edge: 0.02, ring: [130, 270] },
 ];
 
 const lonOf = (x: number, n: number) => (x / n) * 360 - 180;
@@ -63,6 +65,7 @@ const fragment = /* glsl */ `
   uniform vec2 uFocus;
   uniform float uColor;
   uniform float uEdge;
+  uniform vec2 uRing;
   uniform float uFar;
   uniform float uOn;
   void main() {
@@ -76,9 +79,11 @@ const fragment = /* glsl */ `
     float d = distance(vWorld.xz, uFocus);
     float keep = (1.0 - smoothstep(70.0, 190.0, d)) * uColor;
     vec3 col = mix(print, t.rgb * 1.12, keep);
-    // soft at the layer's edge, and fading into the paper towards the horizon
+    // each layer dissolves in a wide ring round the campus, under the sharper one above it and finally into the paper
     float e = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
-    float a = t.a * smoothstep(0.0, uEdge, e) * (1.0 - smoothstep(0.45 * uFar, 0.8 * uFar, distance(vWorld, cameraPosition)));
+    float ring = 1.0 - smoothstep(uRing.x, uRing.y, d);
+    ring = ring * ring * (3.0 - 2.0 * ring);
+    float a = t.a * smoothstep(0.0, uEdge, e) * ring * (1.0 - smoothstep(0.45 * uFar, 0.8 * uFar, distance(vWorld, cameraPosition)));
     gl_FragColor = vec4(col, a * uOn);
   }
 `;
@@ -118,6 +123,7 @@ function makeLayer(spec: LayerSpec, order: number): Layer {
       uFocus: { value: new THREE.Vector2(CAMPUS.east, -CAMPUS.north) },
       uColor: { value: 0 },
       uEdge: { value: spec.edge },
+      uRing: { value: new THREE.Vector2(spec.ring[0], spec.ring[1]) },
       uFar: { value: 1e6 },
       uOn: { value: 1 },
     },
