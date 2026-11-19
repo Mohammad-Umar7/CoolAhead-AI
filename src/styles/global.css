@@ -194,8 +194,8 @@ a {
   background: var(--glass), var(--glass-tint);
   border: 1px solid var(--glass-edge);
   border-radius: var(--r-lg);
-  backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
   box-shadow: var(--glass-shadow);
 }
 
@@ -223,8 +223,8 @@ a {
   border: 1px solid var(--glass-edge);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   font: 500 10px/1 var(--mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -246,8 +246,8 @@ a {
   border: 1px solid var(--glass-edge);
   border-radius: 999px;
   background: var(--glass), var(--glass-tint);
-  backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
   box-shadow: var(--glass-shadow);
 }
 
