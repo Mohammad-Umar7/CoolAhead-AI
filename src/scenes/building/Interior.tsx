@@ -28,8 +28,8 @@ const PACE = 3.4;
 /** A detection box as the eight corners of a unit cube: the frame a tracker draws round each person it has found. */
 function bracketGeometry() {
   const bag = new Bag();
-  const t = 0.035;
-  const len = 0.3;
+  const t = 0.022;
+  const len = 0.22;
   for (const sx of [-1, 1]) {
     for (const sy of [-1, 1]) {
       for (const sz of [-1, 1]) {

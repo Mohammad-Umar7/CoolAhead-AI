@@ -110,6 +110,7 @@ export default function Dressing({ look }: { look: React.RefObject<Look> }) {
   const crowns = useRef<THREE.InstancedMesh>(null);
   const trunks = useRef<THREE.InstancedMesh>(null);
   const grove = useRef<THREE.Group>(null);
+  const walls = useRef<(THREE.Group | null)[]>([]);
   const mats = useMemo(() => {
     const glass = () => new THREE.MeshStandardMaterial({ color: '#6fa6cf', roughness: 0.04, metalness: 0.6, transparent: true, opacity: 0.42, depthWrite: false, envMapIntensity: 2.2 });
     const fin = () => new THREE.MeshStandardMaterial({ color: '#3f4853', roughness: 0.4, metalness: 0.7 });
@@ -144,7 +145,10 @@ export default function Dressing({ look }: { look: React.RefObject<Look> }) {
       grove.current.visible = open < 0.98;
     }
     // glass thins out when looking through the building, and comes off the storeys that are lifted or opened
-    const fade = [1, 1 - open, 1 - 0.93 * open];
+    // every curtain wall comes off when the floor is opened, so its fins do not stand in the picture
+    const fade = [1 - open, 1 - open, 1 - open];
+    if (lifted.current) lifted.current.visible = fade[2] > 0.01;
+    walls.current.forEach((g, i) => g && (g.visible = fade[i] > 0.01));
     for (let i = 0; i < 3; i++) {
       mats.glass[i].opacity = 0.42 * fade[i] * (1 - 0.75 * l.xray);
       const o = fade[i] * (1 - 0.8 * l.xray);
@@ -162,7 +166,7 @@ export default function Dressing({ look }: { look: React.RefObject<Look> }) {
   return (
     <group>
       {[lower, middle].map((c, i) => (
-        <group key={i}>
+        <group key={i} ref={(g) => void (walls.current[i] = g)}>
           <mesh geometry={c.fins} material={mats.fin[i]} castShadow={i === 0} />
           <mesh geometry={c.glass} material={mats.glass[i]} renderOrder={2} />
         </group>

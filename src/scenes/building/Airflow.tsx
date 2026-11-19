@@ -70,8 +70,8 @@ function supplyCurves() {
   const out: THREE.Curve<THREE.Vector3>[] = [];
   PLAN.forEach((p) => {
     p.diffusers.forEach(([dx, dz], k) => {
-      for (let i = 0; i < 22; i++) {
-        const a = (i / 22) * Math.PI * 2 + k * 0.4 + ((i * 7) % 5) * 0.03;
+      for (let i = 0; i < 9; i++) {
+        const a = (i / 9) * Math.PI * 2 + k * 0.4 + ((i * 7) % 5) * 0.03;
         const cos = Math.cos(a);
         const sin = Math.sin(a);
         // how far the jet can travel before it meets a wall
@@ -92,8 +92,8 @@ function returnCurves() {
   const zc = (CORRIDOR.z0 + CORRIDOR.z1) / 2;
   PLAN.forEach((p) => {
     const inward = p.side === 'north' ? -1 : 1;
-    for (let i = 0; i < 4; i++) {
-      const x = p.x0 + ((i + 0.6) / 4) * (p.x1 - p.x0);
+    for (let i = 0; i < 1; i++) {
+      const x = p.x0 + 0.5 * (p.x1 - p.x0);
       const lane = zc + (i - 1.5) * 0.28 + (p.side === 'north' ? -0.5 : 0.5);
       out.push(
         new THREE.CatmullRomCurve3(
@@ -134,7 +134,7 @@ interface Props {
 export default function Airflow({ frame, look }: Props) {
   const flow = useRef(0);
   const clock = useRef(0);
-  const geo = useMemo(() => ({ supply: tubes(supplyCurves(), 0.05), back: tubes(returnCurves(), 0.05, 60), duct: tubes(ductCurves(), 0.06, 70) }), []);
+  const geo = useMemo(() => ({ supply: tubes(supplyCurves(), 0.07), back: tubes(returnCurves(), 0.07, 60), duct: tubes(ductCurves(), 0.06, 70) }), []);
   const mats = useMemo(
     () => ({
       supply: flowMaterial('#0050ff', '#58b8ff', 2.0),

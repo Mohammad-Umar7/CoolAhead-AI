@@ -504,28 +504,115 @@
 
 .tag.room {
   transform: translate(-50%, -100%);
-  padding: 5px 11px 6px;
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid var(--line);
-  box-shadow: 0 10px 22px -12px rgba(15, 21, 34, 0.45);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px 0 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(15, 21, 34, 0.08),
+    0 12px 26px -12px rgba(15, 21, 34, 0.55);
+  font-size: 13px;
+  white-space: nowrap;
   color: var(--ink-2);
-  text-align: center;
+}
+
+.tag.room i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink-4);
+}
+
+.tag.room.busy i {
+  background: #0aa884;
+  box-shadow: 0 0 0 4px rgba(10, 168, 132, 0.2);
 }
 
 .tag.room b {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 650;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--ink);
 }
 
 .tag.room em {
   font-style: normal;
   font-weight: 600;
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
   color: #0a8058;
 }
 
 .tag.room em.warm {
+  color: var(--hot);
+}
+
+.tag.room.ahu {
+  background: var(--em);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tag.room.ahu b {
+  color: #fff;
+}
+
+.tag.room.ahu i {
+  background: #5fb8ff;
+}
+
+/* one plain sentence about the zone, under the picture */
+.twin-caption {
+  position: absolute;
+  left: 50%;
+  bottom: 138px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 0 0 1px rgba(15, 21, 34, 0.08),
+    0 18px 40px -18px rgba(15, 21, 34, 0.55);
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--ink);
+  animation: card-up 0.6s var(--ease) both;
+}
+
+.twin-caption svg {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.twin-caption b {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--m);
+}
+
+.twin-caption b i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--m-solid);
+}
+
+.cap-warn {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--hot-wash);
+  font-size: 13px;
+  font-weight: 600;
   color: var(--hot);
 }

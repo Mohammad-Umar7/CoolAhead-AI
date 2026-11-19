@@ -101,9 +101,13 @@ function Storeys({ floors, upper, look }: { floors: number[]; upper: boolean; lo
     const t = useSim.getState().t;
     const open = ease(l.focus);
 
-    // the upper storeys are lifted clear of level three and faded, so the eye stays on what is underneath
-    const base = upper ? 1 - 0.93 * open : 1;
-    if (upper && group.current) group.current.position.y = open * 17;
+    // the upper storeys are lifted clear of level three and fade right out, so only the opened floor is left
+    const base = upper ? 1 - open : 1;
+    if (upper && group.current) {
+      group.current.position.y = open * 17;
+      // faded right out it must also stop drawing, or it still hides what is under it
+      group.current.visible = base > 0.01;
+    }
     const fade = (m: THREE.Material, keep: number) => {
       const o = base * (1 - (1 - keep) * l.xray);
       m.opacity = o;
@@ -111,11 +115,17 @@ function Storeys({ floors, upper, look }: { floors: number[]; upper: boolean; lo
       m.depthWrite = o > 0.5;
     };
     fade(mats.slab, 0.26);
-    fade(mats.core, 0.1);
     fade(mats.mute, 0.03);
     fade(mats.room, 0.06);
-    mats.strip.opacity = base;
-    mats.strip.transparent = base < 0.995;
+    // the lift cores would stand up through the opened floor: they go too
+    const core = base * (1 - open) * (1 - 0.9 * l.xray);
+    mats.core.opacity = core;
+    mats.core.transparent = core < 0.995;
+    mats.core.depthWrite = core > 0.5;
+    cores.current!.visible = core > 0.01;
+    mats.strip.opacity = base * (1 - open);
+    mats.strip.transparent = mats.strip.opacity < 0.995;
+    strips.current.visible = mats.strip.opacity > 0.01;
     mats.pipe.opacity = base * l.xray;
     if (pipes.current) pipes.current.visible = l.xray > 0.01;
     const shadows = base > 0.6 && l.xray < 0.5;
@@ -129,9 +139,9 @@ function Storeys({ floors, upper, look }: { floors: number[]; upper: boolean; lo
         let cr = a3[0] + (b3[0] - a3[0]) * l.heat;
         let cg = a3[1] + (b3[1] - a3[1]) * l.heat;
         let cb = a3[2] + (b3[2] - a3[2]) * l.heat;
-        if (s.live) {
-          // opened up: the block flattens into the room's floor, and steps aside for the heat map
-          const k = open * Math.max(l.heat * 0.9, 0.58);
+        if (s.floor === LIVE.floor) {
+          // opened up: every room on the floor flattens; the simulated rooms keep a tint of their colour, the rest go plain
+          const k = s.live ? open * Math.max(l.heat * 0.9, 0.58) : open;
           cr += (PAPER[0] - cr) * k;
           cg += (PAPER[1] - cg) * k;
           cb += (PAPER[2] - cb) * k;
@@ -141,7 +151,7 @@ function Storeys({ floors, upper, look }: { floors: number[]; upper: boolean; lo
         }
         rooms.current!.setColorAt(i * 3 + r, color.setRGB(cr, cg, cb, THREE.SRGBColorSpace));
       }
-      if (s.live) {
+      if (s.floor === LIVE.floor) {
         const h = ROOM_H + (0.08 - ROOM_H) * open;
         place(mutes.current!, i * 2, s.x + (PLANT.x0 + PLANT.x1) / 2, s.y + h / 2, s.z + (PLANT.z0 + PLANT.z1) / 2, PLANT.x1 - PLANT.x0 - 0.3, h, PLANT.z1 - PLANT.z0 - 0.3);
         place(mutes.current!, i * 2 + 1, s.x + (OTHER.x0 + OTHER.x1) / 2, s.y + h / 2, s.z + (OTHER.z0 + OTHER.z1) / 2, OTHER.x1 - OTHER.x0 - 0.3, h, OTHER.z1 - OTHER.z0 - 0.3);

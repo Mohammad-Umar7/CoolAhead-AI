@@ -20,6 +20,24 @@ interface Props {
   onPick?: (t: number) => void;
 }
 
+/** Lay the flags out left to right; one that would run into the flag before it shows only its number. */
+function placeFlags(flags: Flag[], width: number) {
+  let edge = -Infinity;
+  return flags.map((f) => {
+    const x = dayPos(f.t) * width;
+    let w = 40 + f.label.length * 6.5;
+    let left = Math.min(width - w, Math.max(0, x - w / 2));
+    let compact = false;
+    if (left < edge + 6) {
+      compact = true;
+      w = 26;
+      left = Math.min(width - w, Math.max(edge + 6, x - w / 2));
+    }
+    edge = left + w;
+    return { ...f, x, w, left, compact };
+  });
+}
+
 /** The day from 07:00 to 19:00 as one strip, coloured by how CoolAhead runs the zone, with the test situations flagged on it. */
 export default function Ribbon({ width, t, flags = [], active = -1, onFlag, onPick }: Props) {
   const spans = useMemo(() => modeSpans(), []);
@@ -35,18 +53,18 @@ export default function Ribbon({ width, t, flags = [], active = -1, onFlag, onPi
   return (
     <div className="ribbon" style={{ width }}>
       <div className="rb-flags">
-        {flags.map((f, i) => {
-          // a flag is centred on its moment unless that would push it off either end
-          const x = dayPos(f.t) * width;
-          const w = 40 + f.label.length * 6.5;
-          const left = Math.min(width - w, Math.max(0, x - w / 2));
-          return (
-            <button key={f.label} className={`rb-flag${i === active ? ' on' : ''}`} style={{ left, transform: i === active ? 'translateY(-2px)' : 'none', ['--stem' as string]: `${x - left}px`, width: w }} onClick={() => onFlag?.(i)}>
-              <b>{i + 1}</b>
-              {f.label}
-            </button>
-          );
-        })}
+        {placeFlags(flags, width).map((f, i) => (
+          <button
+            key={f.label}
+            className={`rb-flag${i === active ? ' on' : ''}${f.compact ? ' compact' : ''}`}
+            style={{ left: f.left, width: f.w, ['--stem' as string]: `${f.x - f.left}px` }}
+            onClick={() => onFlag?.(i)}
+            title={f.label}
+          >
+            <b>{i + 1}</b>
+            {f.compact ? '' : f.label}
+          </button>
+        ))}
       </div>
       <div
         className="rb-track"

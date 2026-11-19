@@ -210,8 +210,8 @@ export default function Liwa({ state }: { state: React.RefObject<IntroState> }) 
       ghost: [facadeMaterial(0, true), facadeMaterial(1, true), facadeMaterial(2, true)],
       slab: new THREE.MeshBasicMaterial({ color: '#0f1522', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }),
       slabEdge: new THREE.LineBasicMaterial({ color: '#3a4658', transparent: true, opacity: 0, depthWrite: false }),
-      zone: new THREE.MeshBasicMaterial({ color: '#1f5fee', transparent: true, opacity: 0, depthWrite: false }),
-      zoneEdge: new THREE.LineBasicMaterial({ color: '#1f5fee', transparent: true, opacity: 0, depthWrite: false }),
+      zone: new THREE.MeshBasicMaterial({ color: '#1f5fee', transparent: true, opacity: 0, depthWrite: false, depthTest: false }),
+      zoneEdge: new THREE.LineBasicMaterial({ color: '#1f5fee', transparent: true, opacity: 0, depthWrite: false, depthTest: false }),
       core: new THREE.LineBasicMaterial({ color: '#7b8391', transparent: true, opacity: 0, depthWrite: false }),
     }),
     [],
@@ -248,7 +248,8 @@ export default function Liwa({ state }: { state: React.RefObject<IntroState> }) 
     group.current.visible = rise > 0.001;
     group.current.scale.y = Math.max(0.001, rise * rise * (3 - 2 * rise));
     // the x-ray front travels from above the roof down to the pavement
-    const scan = s.xray <= 0 ? 999 : THREE.MathUtils.lerp(CAMPUS.height + 5, -1.5, s.xray);
+    // the facade stays solid over the photograph; level three is shown through it instead
+    const scan = 999;
     const lit = 1 - smoothstep(s.alt, 400, 2400);
     for (const m of [...mats.solid, ...mats.ghost]) {
       m.uniforms.uScan.value = scan;
@@ -258,9 +259,9 @@ export default function Liwa({ state }: { state: React.RefObject<IntroState> }) 
     const through = smoothstep(s.xray, 0.05, 0.6);
     mats.slabEdge.opacity = 0.34 * through;
     mats.core.opacity = 0.3 * through;
-    const reached = smoothstep(s.xray, 0.62, 0.86);
+    const reached = smoothstep(s.xray, 0.1, 0.6);
     const pulse = 0.75 + 0.25 * Math.sin(clock.clock.elapsedTime * 2.4);
-    mats.zone.opacity = 0.34 * reached * pulse;
+    mats.zone.opacity = 0.5 * reached * pulse;
     mats.zoneEdge.opacity = reached;
     if (inside.current) inside.current.visible = s.xray > 0.01;
     // the name on the portal goes when the x-ray front passes it

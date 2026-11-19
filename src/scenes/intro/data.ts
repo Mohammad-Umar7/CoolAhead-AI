@@ -1,26 +1,5 @@
-export interface GeoData {
-  origin: { lat: number; lon: number };
-  /** rings of [x, y, x, y, ...] in metres east and north of the campus */
-  outline: number[][];
-  emirates: { name: string; rings: number[][] }[];
-  neighbours: { c: string; pts: number[] }[];
-  places: { name: string; x: number; y: number }[];
-}
-
-export interface CityData {
-  origin: { lat: number; lon: number };
-  buildings: { pts: number[]; h: number; tagged: boolean; name?: string; campus?: boolean }[];
-  streets: { pts: number[]; k: number }[];
-  arterials: { pts: number[]; k: number }[];
-  coast: number[][];
-}
-
-const load = <T,>(file: string): Promise<T> => fetch(`${import.meta.env.BASE_URL}data/${file}`).then((r) => r.json() as Promise<T>);
-
-let geo: Promise<GeoData> | null = null;
-let city: Promise<CityData> | null = null;
-export const geoData = () => (geo ??= load<GeoData>('geo.json'));
-export const cityData = () => (city ??= load<CityData>('city.json'));
+/** The map pin the intro is measured from: metres east and north of it. */
+export const ORIGIN = { lat: 24.4855142, lon: 54.3755735 };
 
 /**
  * The campus building as mapped: a slab about 72 m by 23 m, twelve storeys,
@@ -38,4 +17,10 @@ export const CAMPUS = {
   yaw: -Math.atan2(56.5, 44.1),
 };
 
-export const KM = 1000;
+/** The footprint from OpenStreetMap, metres east and north of the map pin. */
+export const FOOTPRINT: [number, number][] = [
+  [-5.7, 24.4],
+  [12.1, 38.3],
+  [56.2, -18.2],
+  [38.4, -32.1],
+];

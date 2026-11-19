@@ -358,6 +358,11 @@
   background: var(--line-2);
 }
 
+.rb-flag.compact {
+  padding: 0;
+  justify-content: center;
+}
+
 .rb-flag:hover {
   border-color: var(--ink);
   color: var(--ink);

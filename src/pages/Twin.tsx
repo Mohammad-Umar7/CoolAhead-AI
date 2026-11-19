@@ -17,7 +17,7 @@ type Scope = 'building' | 'zone';
 
 const LIVE = SPOTS[liveIndex];
 const WHOLE: Shot = { target: [0, HEIGHT * 0.47, 0], from: [-0.62, 0.34, 0.71], span: 100, rise: 66 };
-const INSIDE: Shot = { target: [LIVE.x + 9.6, LIVE.y + 0.6, LIVE.z + 9.8], from: [-0.46, 0.7, 0.55], span: 31, rise: 25 };
+const INSIDE: Shot = { target: [LIVE.x + 9.6, LIVE.y + 0.4, LIVE.z + 9.8], from: [-0.3, 0.88, 0.46], span: 30, rise: 23 };
 const RATES = [
   { label: 'Slow', speed: 1.5 },
   { label: 'Normal', speed: 5 },
@@ -143,6 +143,34 @@ function Inside({ applied, onNext }: { applied: number | null; onNext: () => voi
   );
 }
 
+const list = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`);
+
+/** What is going on in the zone right now, in one line under the picture. */
+function Caption() {
+  const minute = useMinute();
+  const d = decisionAt(DAY, minute);
+  const k = Math.min(DAY.steps, minute - DAY.t0);
+  const busy = ROOMS.filter((_, i) => Math.round(at(DAY.occ[i], minute)) >= 1).map((r) => r.id);
+  const empty = ROOMS.filter((_, i) => Math.round(at(DAY.occ[i], minute)) < 1).map((r) => r.id);
+  const lost = ROOMS.filter((_, i) => DAY.online[i][k] !== 1).map((r) => r.id);
+  const fan = Math.round(MODES[d.mode].fan * 100);
+  const who = !busy.length ? 'Nobody in the zone' : !empty.length ? 'All three rooms in use' : `${list(busy)} in use, ${list(empty)} empty`;
+  return (
+    <p className="twin-caption" data-mode={d.mode}>
+      {lost.length > 0 && <span className="cap-warn">{list(lost)} camera down</span>}
+      <span>{who}</span>
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+        <path d="M2 8h11M9 3.5 13.5 8 9 12.5" />
+      </svg>
+      <b>
+        <i />
+        {MODES[d.mode].label}
+        {fan > 0 ? `, ${fan}% airflow` : ', fan off'}
+      </b>
+    </p>
+  );
+}
+
 /** Labels pinned to the model. They are ordinary HTML, moved each frame by the scene. */
 function Tags({ els, scope, layer }: { els: React.RefObject<AnchorEls>; scope: Scope; layer: Layer }) {
   const minute = useMinute();
@@ -163,17 +191,26 @@ function Tags({ els, scope, layer }: { els: React.RefObject<AnchorEls>; scope: S
         const warm = temp > COMFORT_HI;
         return (
           <div key={r.id} className="tag-pin for-zone" ref={pin(`room${i}`)}>
-            <span className="tag room">
+            <span className={`tag room${people >= 1 ? ' busy' : ''}`}>
+              <i />
               <b>{r.id}</b>
-              {layer === 'heat' ? `${people} ${people === 1 ? 'person' : 'people'}` : layer === 'xray' ? `${SHARE[i]}% of the air` : <em className={warm ? 'warm' : ''}>{temp.toFixed(1)} °C</em>}
+              {layer === 'xray' ? (
+                <span>{SHARE[i]}% of the air</span>
+              ) : (
+                <>
+                  <span>{people >= 1 ? `${people} ${people === 1 ? 'person' : 'people'}` : 'empty'}</span>
+                  <em className={warm ? 'warm' : ''}>{temp.toFixed(1)}°</em>
+                </>
+              )}
             </span>
           </div>
         );
       })}
       <div className="tag-pin for-zone" ref={pin('ahu')}>
-        <span className="tag room">
+        <span className="tag room ahu">
+          <i />
           <b>AHU-3A</b>
-          one air handler
+          <span>one air handler for all three</span>
         </span>
       </div>
     </div>
@@ -312,6 +349,7 @@ export default function Twin() {
       </div>
 
       {scope === 'building' ? <Whole /> : <Inside applied={applied} onNext={next} />}
+      {scope === 'zone' && <Caption />}
       <Legend layer={layer} />
       <TimeBar />
     </div>
