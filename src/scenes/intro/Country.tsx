@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Line } from '@react-three/drei';
 import type { Line2 } from 'three-stdlib';
+import { uiScale } from '../../lib/fit';
 import type { GeoData } from './data';
 import type { IntroState } from './IntroScene';
 
@@ -114,6 +115,8 @@ export default function Country({ geo, state }: { geo: GeoData; state: React.Ref
     mats.graticule.opacity = (0.5 + 0.5 * s.detail) * far;
   });
 
+  // the outline is drawn in screen pixels, so it is scaled with the rest of the interface
+  const k = uiScale();
   return (
     <group>
       <lineSegments geometry={graticule} material={mats.graticule} />
@@ -122,8 +125,8 @@ export default function Country({ geo, state }: { geo: GeoData; state: React.Ref
       <lineSegments geometry={borders} material={mats.borders} />
       {rings.map((pts, i) => (
         <group key={i}>
-          <Line ref={(l) => void (glow.current[i] = l as Line2 | null)} points={pts} color="#f3d004" lineWidth={6} transparent opacity={0.2} depthWrite={false} />
-          <Line ref={(l) => void (lines.current[i] = l as Line2 | null)} points={pts} color="#ffe24a" lineWidth={1.7} transparent depthWrite={false} />
+          <Line ref={(l) => void (glow.current[i] = l as Line2 | null)} points={pts} color="#f3d004" lineWidth={6 * k} transparent opacity={0.2} depthWrite={false} />
+          <Line ref={(l) => void (lines.current[i] = l as Line2 | null)} points={pts} color="#ffe24a" lineWidth={1.7 * k} transparent depthWrite={false} />
         </group>
       ))}
     </group>
