@@ -12,7 +12,7 @@ import Tags, { AhuReadout } from '../ui/Tags';
 import Timeline, { ModeLegend } from '../ui/Timeline';
 
 const VIEWS: { id: FloorView; label: string; hint: string }[] = [
-  { id: 'live', label: 'Live', hint: 'People, air and room temperature together' },
+  { id: 'live', label: 'Live', hint: 'People, moving air and room temperature together' },
   { id: 'heat', label: 'Heat map', hint: 'Where people are, from the camera counts' },
   { id: 'thermal', label: 'Thermal', hint: 'Room air temperature against the comfort band' },
   { id: 'xray', label: 'X-ray', hint: 'One air handler feeding three rooms' },
@@ -46,56 +46,50 @@ export function FloorLights() {
   );
 }
 
-/** Outdoor conditions: the heat the zone is working against. */
-function Weather() {
+/** Outdoor temperature: the heat the zone is working against. */
+function Outside() {
   const minute = useMinute();
   const tOut = at(DAY.tOut, minute + 0.5);
-  const sun = at(DAY.sun, minute + 0.5);
   return (
-    <div className="weather">
+    <>
       <span className="label">Outside</span>
-      <span className="weather-temp num">
+      <span className="key-out num">
         {tOut.toFixed(1)}
         <i>°C</i>
       </span>
-      <span className="weather-sun" title="Direct sun on the south-west glazing">
-        <span className="label">Sun on glass</span>
-        <span className="weather-bar">
-          <i style={{ width: `${Math.round(sun * 100)}%` }} />
-        </span>
-      </span>
-    </div>
+    </>
   );
 }
 
-function Legend({ view }: { view: FloorView }) {
-  if (view === 'heat') {
-    return (
-      <div className="legend">
-        <span className="label">People density</span>
-        <div className="legend-bar" style={{ background: cssRamp('heat') }} />
-        <div className="legend-ends mono">
-          <span>empty</span>
-          <span>crowded</span>
-        </div>
-      </div>
-    );
-  }
+/** What the colours on the model mean in the current view, in one line. */
+function ColourKey({ view }: { view: FloorView }) {
   const [a, b] = TEMP_RANGE;
   const pos = (v: number) => `${((v - a) / (b - a)) * 100}%`;
   return (
-    <div className="legend">
-      <span className="label">Room air temperature</span>
-      <div className="legend-bar" style={{ background: cssRamp('temp') }}>
-        <span className="legend-band" style={{ left: pos(COMFORT_LO), width: `calc(${pos(COMFORT_HI)} - ${pos(COMFORT_LO)})` }} />
-      </div>
-      <div className="legend-ends mono">
-        <span>{a}°</span>
-        <span className="legend-mid" style={{ left: pos((COMFORT_LO + COMFORT_HI) / 2) }}>
-          comfort
-        </span>
-        <span>{b}°</span>
-      </div>
+    <div className="key-strip">
+      {view === 'heat' ? (
+        <>
+          <span className="label">People density</span>
+          <span className="mono">empty</span>
+          <span className="key-bar" style={{ background: cssRamp('heat') }} />
+          <span className="mono">crowded</span>
+        </>
+      ) : (
+        <>
+          <span className="label">Room air</span>
+          <span className="mono">{a}°</span>
+          <span className="key-bar" style={{ background: cssRamp('temp') }}>
+            <i className="key-band" style={{ left: pos(COMFORT_LO), width: `calc(${pos(COMFORT_HI)} - ${pos(COMFORT_LO)})` }} />
+          </span>
+          <span className="mono">{b}°</span>
+          <span className="key-comfort mono">
+            <i />
+            comfort {COMFORT_LO} to {COMFORT_HI}°
+          </span>
+        </>
+      )}
+      <span className="key-sep" />
+      <Outside />
     </div>
   );
 }
@@ -109,28 +103,21 @@ export default function Twin() {
         <FloorLights />
         <FloorScene source="cool" view={view} tags={tags} />
         <OrbitControls makeDefault enablePan={false} enableDamping dampingFactor={0.08} minDistance={22} maxDistance={110} minPolarAngle={0.2} maxPolarAngle={1.34} />
-        <Framing span={31} from={[-0.5, 0.66, 0.82]} target={[0, 0.9, 0.2]} inset={{ left: 386, bottom: 250, top: 100 }} />
+        <Framing span={31} from={[-0.5, 0.66, 0.82]} target={[0, 0.9, 0.2]} inset={{ left: 386, right: 50, bottom: 250, top: 104 }} />
         <IdleSway />
       </Stage>
       <Tags els={tags} source="cool" ducts={view === 'xray'} />
 
-      <div className="twin-top">
-        <div className="seg" role="group" aria-label="View">
-          {VIEWS.map((v) => (
-            <button key={v.id} aria-pressed={view === v.id} onClick={() => setView(v.id)} title={v.hint}>
-              {v.label}
-            </button>
-          ))}
-        </div>
-        <p className="twin-hint">{VIEWS.find((v) => v.id === view)!.hint}</p>
+      <div className="twin-top seg" role="group" aria-label="View">
+        {VIEWS.map((v) => (
+          <button key={v.id} aria-pressed={view === v.id} onClick={() => setView(v.id)} title={v.hint}>
+            {v.label}
+          </button>
+        ))}
       </div>
 
       <aside className="twin-side">
         <DecisionCard />
-        <div className="twin-legend panel">
-          <Legend view={view} />
-          <Weather />
-        </div>
       </aside>
 
       <div className="twin-status">
@@ -138,7 +125,10 @@ export default function Twin() {
       </div>
 
       <footer className="twin-foot">
-        <ModeLegend />
+        <div className="twin-keys">
+          <ColourKey view={view} />
+          <ModeLegend />
+        </div>
         <Timeline />
       </footer>
     </div>

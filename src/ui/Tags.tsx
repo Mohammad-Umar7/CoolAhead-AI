@@ -93,20 +93,23 @@ function DuctTag({ index, source }: { index: number; source: Source }) {
   );
 }
 
+/** The lecture hall is the left-hand room in the default view, so its label opens leftwards, away from its neighbours. */
+const OPENS_LEFT = 1;
+
 /** Labels pinned to the 3D model. The scene moves the wrappers; this fills them. */
-export default function Tags({ els, source = 'cool', ducts = false }: { els: React.RefObject<AnchorEls>; source?: Source; ducts?: boolean }) {
+export default function Tags({ els, source = 'cool', ducts = false, compact = false }: { els: React.RefObject<AnchorEls>; source?: Source; ducts?: boolean; compact?: boolean }) {
   const pin = (key: string) => (el: HTMLDivElement | null) => {
     els.current[key] = el;
   };
   return (
-    <div className="tags" aria-hidden="true">
+    <div className={`tags${compact ? ' compact' : ''}`} aria-hidden="true">
       {ROOMS.map((_, i) => (
-        <div key={i} className="tag-pin" ref={pin(`room${i}`)}>
+        <div key={i} className={`tag-pin${i === OPENS_LEFT ? ' left' : ''}`} ref={pin(`room${i}`)}>
           <RoomTag index={i} source={source} />
         </div>
       ))}
       {ROOMS.map((_, i) => (
-        <div key={`d${i}`} className={`tag-pin fade${ducts ? ' on' : ''}`} ref={pin(`duct${i}`)}>
+        <div key={`d${i}`} className={`tag-pin left fade${ducts ? ' on' : ''}`} ref={pin(`duct${i}`)}>
           <DuctTag index={i} source={source} />
         </div>
       ))}
