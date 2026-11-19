@@ -314,10 +314,10 @@ export default function Agents() {
       <div className="ag-loop">
         <div className={`zonebox ${zoneState}`} ref={zone}>
           <div className="zb-canvas">
-            <Stage camera={{ position: [-12, 32, 40], fov: 24 }} bloom={0.5}>
+            <Stage camera={{ position: [-22, 30, 34], fov: 24 }} bloom={0.5} studio>
               <FloorLights />
-              <FloorScene source="cool" view="live" />
-              <Framing span={36} from={[-0.25, 0.62, 0.92]} target={[0, 0.3, 0.4]} />
+              <FloorScene source="cool" view="live" reflect={false} />
+              <Framing span={27} from={[-0.5, 0.6, 0.82]} target={[0, 0.8, 0.2]} />
             </Stage>
           </div>
           <div className="zb-text">

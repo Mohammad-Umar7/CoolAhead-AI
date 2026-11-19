@@ -34,7 +34,8 @@ function RoomTag({ index, source }: { index: number; source: Source }) {
   );
 }
 
-function AhuTag({ source }: { source: Source }) {
+/** The shared air handler in three numbers: how hard the fan runs, how cold the air is, what it draws. */
+export function AhuReadout({ source = 'cool' }: { source?: Source }) {
   const minute = useMinute();
   const t = minute + 0.5;
   const run = runOf(source);
@@ -42,20 +43,30 @@ function AhuTag({ source }: { source: Source }) {
   const sup = at(run.tSupply, t);
   const kw = at(run.power, t);
   return (
-    <div className="tag ahu-tag">
-      <span className="tag-id">
-        {ZONE.id}
-        <em>one air handler, three rooms</em>
-      </span>
-      <span className="tag-row mono">
-        <b>fan</b> {Math.round(fan * 100)}%
-      </span>
-      <span className="tag-row mono">
-        <b>supply</b> {fan > 0 ? `${sup.toFixed(1)} °C` : 'off'}
-      </span>
-      <span className="tag-row mono">
-        <b>power</b> {kw.toFixed(1)} kW
-      </span>
+    <div className="ahu-readout panel">
+      <div className="ahu-head">
+        <span className="label">Air handler {ZONE.id}</span>
+        <span className="ahu-note">one unit, three rooms</span>
+      </div>
+      <div className="ahu-nums">
+        <div>
+          <span className="num">{Math.round(fan * 100)}</span>
+          <i>%</i>
+          <em>fan</em>
+        </div>
+        <div>
+          <span className="num" style={{ color: fan > 0 ? 'var(--ice)' : undefined }}>
+            {fan > 0 ? sup.toFixed(1) : '–'}
+          </span>
+          <i>°C</i>
+          <em>supply air</em>
+        </div>
+        <div>
+          <span className="num">{kw.toFixed(1)}</span>
+          <i>kW</i>
+          <em>drawing</em>
+        </div>
+      </div>
     </div>
   );
 }
@@ -83,7 +94,7 @@ function DuctTag({ index, source }: { index: number; source: Source }) {
 }
 
 /** Labels pinned to the 3D model. The scene moves the wrappers; this fills them. */
-export default function Tags({ els, source = 'cool', ahu = true, ducts = false }: { els: React.RefObject<AnchorEls>; source?: Source; ahu?: boolean; ducts?: boolean }) {
+export default function Tags({ els, source = 'cool', ducts = false }: { els: React.RefObject<AnchorEls>; source?: Source; ducts?: boolean }) {
   const pin = (key: string) => (el: HTMLDivElement | null) => {
     els.current[key] = el;
   };
@@ -94,11 +105,6 @@ export default function Tags({ els, source = 'cool', ahu = true, ducts = false }
           <RoomTag index={i} source={source} />
         </div>
       ))}
-      {ahu && (
-        <div className="tag-pin" ref={pin('ahu')}>
-          <AhuTag source={source} />
-        </div>
-      )}
       {ROOMS.map((_, i) => (
         <div key={`d${i}`} className={`tag-pin fade${ducts ? ' on' : ''}`} ref={pin(`duct${i}`)}>
           <DuctTag index={i} source={source} />
