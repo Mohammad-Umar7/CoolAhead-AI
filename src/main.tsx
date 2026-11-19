@@ -7,6 +7,7 @@ import './styles/global.css';
 import './styles/app.css';
 import './styles/intro.css';
 import './styles/agents.css';
+import './styles/compare.css';
 
 startClock();
 // handy while developing: window.__sim.getState().jump(9 * 60)
