@@ -85,7 +85,7 @@ function Kpis({ source }: { source: Source }) {
   );
 }
 
-function View({ source, id, link, title, sub }: { source: Source; id: string; link: React.RefObject<Link>; title: string; sub: string }) {
+function View({ source, id, link, title, sub }: { source: Source; id: string; link: React.RefObject<Link>; title: React.ReactNode; sub: string }) {
   const tags = useRef<AnchorEls>({});
   return (
     <div className={`cmp-view ${id}`}>
@@ -93,10 +93,10 @@ function View({ source, id, link, title, sub }: { source: Source; id: string; li
         <FloorLights />
         <FloorScene source={source} view="live" tags={tags} reflect={false} />
         <OrbitControls makeDefault enablePan={false} enableZoom={false} enableDamping dampingFactor={0.08} minPolarAngle={0.3} maxPolarAngle={1.3} />
-        <Framing span={30} from={[-0.5, 0.66, 0.82]} target={[0, 0.9, 0.2]} inset={{ top: 50, bottom: 10, left: 170 }} />
+        <Framing span={30} from={[-0.5, 0.66, 0.82]} target={[0, 0.9, 0.2]} inset={{ top: 44, bottom: 6, left: 258, right: 52 }} />
         <CameraLink link={link} id={id} />
       </Stage>
-      <Tags els={tags} source={source} />
+      <Tags els={tags} source={source} compact />
       <header className="cmp-title">
         <span className="label">{id === 'before' ? 'Before' : 'After'}</span>
         <h2>{title}</h2>
@@ -112,8 +112,10 @@ function Saving({ baseline }: { baseline: Source }) {
   const base = at(runOf(baseline).energy, minute) - at(runOf(baseline).energy, VIEW_START);
   const cool = at(runOf('cool').energy, minute) - at(runOf('cool').energy, VIEW_START);
   const pct = base > 3 ? (1 - cool / base) * 100 : 0;
+  // early in the day a late-starting timer can be ahead: the coin says so rather than hiding it
+  const behind = base > 3 && cool > base + 0.05;
   return (
-    <div className="cmp-saving">
+    <div className={`cmp-saving${behind ? ' behind' : ''}`}>
       <span className="label">So far</span>
       <strong className="num">{base > 3 ? `${pct >= 0 ? '−' : '+'}${Math.abs(pct).toFixed(0)}%` : '0%'}</strong>
       <em>
@@ -153,7 +155,19 @@ export default function Compare() {
       </header>
 
       <section className="cmp-views">
-        <View id="before" source={baseline} link={link} title={`Fixed schedule, ${timerLabel(baseline)}`} sub={`Full fan while the timer is on, one thermostat at ${MODES.TIMER.target} °C. Blind to who is in which room.`} />
+        <View
+          id="before"
+          source={baseline}
+          link={link}
+          title={
+            <>
+              Fixed schedule,
+              <br />
+              {timerLabel(baseline)}
+            </>
+          }
+          sub={`Full fan while the timer is on, one thermostat at ${MODES.TIMER.target} °C. Blind to who is in which room.`}
+        />
         <Saving baseline={baseline} />
         <View id="after" source="cool" link={link} title="CoolAhead recommendations" sub="Head counts, the timetable and the shared-zone model pick the mode, minute by minute." />
       </section>
