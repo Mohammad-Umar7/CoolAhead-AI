@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import type { Frame } from '../../lib/frame';
 import { PLAN } from './layout';
 
-const TONES = ['#ffffff', '#e6eefc', '#f4f7ff', '#d5e2f8', '#edf2fd'];
+const TONES = ['#dfe7f6', '#cfdaf0', '#e6ecf8', '#c3d1ec', '#d8e1f3'];
 
 interface Person {
   room: number;
@@ -59,7 +59,7 @@ export default function People({ frame, dim = 0 }: { frame: React.RefObject<Fram
       dummy.scale.set(ease, ease, ease);
       dummy.updateMatrix();
       bodies.current.setMatrixAt(i, dummy.matrix);
-      dummy.position.set(p.x - 0.03, 1.2 * ease + Math.sin(time * 1.3 + p.phase) * 0.008, p.z);
+      dummy.position.set(p.x - 0.03, 1.22 * ease + Math.sin(time * 1.3 + p.phase) * 0.008, p.z);
       dummy.updateMatrix();
       heads.current.setMatrixAt(i, dummy.matrix);
     }
@@ -67,16 +67,17 @@ export default function People({ frame, dim = 0 }: { frame: React.RefObject<Fram
     heads.current.instanceMatrix.needsUpdate = true;
   });
 
-  const emissive = 0.22 * (1 - dim);
+  // glazed white figurines, like the scale people in an architect's model
+  const emissive = 0.05 * (1 - dim);
   return (
     <group>
-      <instancedMesh ref={bodies} args={[undefined, undefined, people.length]} castShadow frustumCulled={false}>
-        <capsuleGeometry args={[0.17, 0.5, 4, 10]} />
-        <meshStandardMaterial roughness={0.55} metalness={0.05} emissive="#dbe8ff" emissiveIntensity={emissive} />
+      <instancedMesh ref={bodies} args={[undefined, undefined, people.length]} castShadow receiveShadow frustumCulled={false}>
+        <capsuleGeometry args={[0.18, 0.5, 6, 16]} />
+        <meshPhysicalMaterial roughness={0.32} metalness={0} clearcoat={0.8} clearcoatRoughness={0.2} emissive="#dbe8ff" emissiveIntensity={emissive} envMapIntensity={1.1} />
       </instancedMesh>
       <instancedMesh ref={heads} args={[undefined, undefined, people.length]} castShadow frustumCulled={false}>
-        <sphereGeometry args={[0.125, 14, 12]} />
-        <meshStandardMaterial roughness={0.5} metalness={0.05} emissive="#dbe8ff" emissiveIntensity={emissive} />
+        <sphereGeometry args={[0.135, 20, 16]} />
+        <meshPhysicalMaterial roughness={0.3} metalness={0} clearcoat={0.8} clearcoatRoughness={0.2} emissive="#dbe8ff" emissiveIntensity={emissive} envMapIntensity={1.1} />
       </instancedMesh>
     </group>
   );
