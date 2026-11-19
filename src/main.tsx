@@ -5,6 +5,7 @@ import App from './App';
 import { startClock, useSim } from './state/sim';
 import './styles/global.css';
 import './styles/app.css';
+import './styles/intro.css';
 
 startClock();
 // handy while developing: window.__sim.getState().jump(9 * 60)
