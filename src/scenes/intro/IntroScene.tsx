@@ -1,18 +1,22 @@
-import { useMemo, useRef } from 'react';
+import { use, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { uiScale } from '../../lib/fit';
 import type { AnchorEls } from '../Anchors';
 import Liwa, { ZONE_Y } from './Liwa';
-import Satellite, { mapReady } from './Satellite';
-import { CAMPUS, FOOTPRINT, ORIGIN } from './data';
+import Country from './Country';
+import Satellite from './Satellite';
+import { CAMPUS, FOOTPRINT, ORIGIN, geoData } from './data';
 
 export interface IntroState {
   /** seconds since the sequence started */
   time: number;
   /** camera height above the ground it looks at, metres */
   alt: number;
+  /** how much of the coastline is drawn, and how far the borders and dots are in: both stay at 1, the outline is there from the start */
+  draw: number;
+  detail: number;
   /** x-ray front through the building, 0..1 */
   xray: number;
   /** set to skip straight to the end */
@@ -21,16 +25,16 @@ export interface IntroState {
   enter: number;
 }
 
-export const newIntroState = (): IntroState => ({ time: 0, alt: 16000, xray: 0, skip: false, enter: 0 });
+export const newIntroState = (): IntroState => ({ time: 0, alt: 760000, draw: 1, detail: 1, xray: 0, skip: false, enter: 0 });
 
-/** Beats of the sequence, seconds: one unbroken dive from the city to the building, then a look inside. */
-export const BEAT = { dive: [0.15, 4.5], xray: [4.6, 5.8], title: 4.9, end: 6.0 };
+/** Beats of the sequence, seconds: one unbroken zoom from the whole country to the building, then level three picked out. */
+export const BEAT = { dive: [0.7, 6.2], xray: [6.3, 7.3], title: 6.5, end: 7.5 };
 
-const ALT_START = 16000;
+const ALT_START = 760000;
 const ALT_END = 118;
 const CAMPUS_POS = new THREE.Vector3(CAMPUS.east, 0, -CAMPUS.north);
-/** where the camera first looks: a little north-west of the campus, so the dive drifts onto it */
-const START = new THREE.Vector3(CAMPUS.east - 2600, 0, -CAMPUS.north - 1500);
+/** where the camera first looks: the middle of the country, so the whole outline is in view */
+const START = new THREE.Vector3(-52000, 0, 28000);
 /** compass bearing the building's front is seen along (looking north-east at a south-west face) */
 const FRONT = THREE.MathUtils.degToRad(52);
 
@@ -137,14 +141,17 @@ function Beacon({ state }: { state: React.RefObject<IntroState> }) {
  * Altitude is interpolated on a log scale so every scale gets the same screen time.
  */
 export default function IntroScene({ state, labels, hud }: Props) {
-  const waited = useRef(0);
+  const geo = use(geoData());
+  const warm = useRef(0);
   const anchors = useMemo(
     () => [
+      { key: 'uae', pos: new THREE.Vector3(-92000, 0, 118000) },
+      ...geo.places.map((p) => ({ key: `place:${p.name}`, pos: new THREE.Vector3(p.x, 0, -p.y) })),
       { key: 'campus', pos: CAMPUS_POS.clone() },
       { key: 'roof', pos: new THREE.Vector3(CAMPUS.east, CAMPUS.height + 6, -CAMPUS.north) },
       { key: 'zone', pos: new THREE.Vector3(CAMPUS.east - 23, ZONE_Y + 2, -CAMPUS.north + 13) },
     ],
-    [],
+    [geo],
   );
 
   useFrame(({ camera, size }, dt) => {
@@ -154,9 +161,9 @@ export default function IntroScene({ state, labels, hud }: Props) {
       s.time = Math.max(s.time, BEAT.end);
       s.skip = false;
     }
-    // hold on the first frame until the map is there to fly over, but never for long
-    waited.current += dt;
-    if (mapReady() || waited.current > 2.5 || s.time > 0) s.time += Math.min(dt, 0.05);
+    // the first frames compile and upload; the zoom starts once the picture is running smoothly
+    warm.current += 1;
+    if (warm.current > 20 || s.time > 0) s.time += Math.min(dt, 0.05);
     const t = s.time;
 
     const dive = ease(span(t, BEAT.dive));
@@ -168,9 +175,9 @@ export default function IntroScene({ state, labels, hud }: Props) {
     const alt = Math.exp(THREE.MathUtils.lerp(Math.log(ALT_START), Math.log(ALT_END), dive)) * (1 - 0.72 * push);
     s.alt = alt;
     const settle = Math.max(0, t - BEAT.dive[1]);
-    const pitch = THREE.MathUtils.lerp(THREE.MathUtils.degToRad(24), THREE.MathUtils.degToRad(66), Math.pow(dive, 1.3));
-    const heading = FRONT * Math.pow(dive, 1.15) + Math.sin(settle * 0.16) * 0.3 * Math.min(1, settle / 3) * (1 - push);
-    target.lerpVectors(START, CAMPUS_POS, ease(Math.min(1, dive / 0.62)));
+    const pitch = THREE.MathUtils.lerp(0.02, THREE.MathUtils.degToRad(66), Math.pow(dive, 2.2));
+    const heading = FRONT * Math.pow(dive, 1.6) + Math.sin(settle * 0.16) * 0.3 * Math.min(1, settle / 3) * (1 - push);
+    target.lerpVectors(START, CAMPUS_POS, ease(Math.min(1, dive / 0.42)));
     target.y = THREE.MathUtils.lerp(0, 17, Math.pow(dive, 6)) + (ZONE_Y - 15) * push;
 
     hd.set(Math.sin(heading), 0, -Math.cos(heading));
@@ -183,7 +190,7 @@ export default function IntroScene({ state, labels, hud }: Props) {
     camera.quaternion.setFromRotationMatrix(basis);
     const cam = camera as THREE.PerspectiveCamera;
     cam.near = Math.max(0.8, alt * 0.02);
-    cam.far = alt * 26 + 4000;
+    cam.far = alt * 80 + 6000;
     // once the camera has arrived the building is slid right, clear of the title
     const slide = THREE.MathUtils.smoothstep(dive, 0.82, 1) * (1 - push);
     // the canvas is measured in screen pixels; the labels and the scale bar live in the scaled layout
@@ -202,9 +209,12 @@ export default function IntroScene({ state, labels, hud }: Props) {
         tmp.copy(a.pos).project(cam);
         el.style.transform = `translate3d(${(((tmp.x * 0.5 + 0.5) * size.width) / k).toFixed(1)}px, ${(((-tmp.y * 0.5 + 0.5) * size.height) / k).toFixed(1)}px, 0)`;
         let o = 0;
-        if (a.key === 'campus') o = smoothstep(alt, 1400, 4200) * (1 - smoothstep(alt, 9000, 15000));
+        if (a.key === 'uae') o = smoothstep(alt, 220000, 520000);
+        else if (a.key === 'campus') o = smoothstep(alt, 1400, 4200);
         else if (a.key === 'roof') o = (1 - smoothstep(alt, 130, 420)) * (1 - smoothstep(s.xray, 0.02, 0.2)) * (1 - push);
         else if (a.key === 'zone') o = smoothstep(s.xray, 0.8, 0.98) * (1 - push);
+        // the cities, while the country is in view; Abu Dhabi gives way to the campus pin
+        else if (a.key !== 'place:Abu Dhabi') o = smoothstep(alt, 45000, 160000);
         el.style.opacity = tmp.z > 1 ? '0' : o.toFixed(3);
       }
     }
@@ -228,6 +238,7 @@ export default function IntroScene({ state, labels, hud }: Props) {
 
   return (
     <group>
+      <Country geo={geo} state={state} />
       <Satellite state={state} />
       <Plot state={state} />
       <Liwa state={state} />

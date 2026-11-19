@@ -1,3 +1,16 @@
+export interface GeoData {
+  origin: { lat: number; lon: number };
+  /** rings of [x, y, x, y, ...] in metres east and north of the campus */
+  outline: number[][];
+  emirates: { name: string; rings: number[][] }[];
+  neighbours: { c: string; pts: number[] }[];
+  places: { name: string; x: number; y: number }[];
+}
+
+let geo: Promise<GeoData> | null = null;
+/** The outline of the UAE, its emirates and neighbours, and its main cities. */
+export const geoData = () => (geo ??= fetch(`${import.meta.env.BASE_URL}data/geo.json`).then((r) => r.json() as Promise<GeoData>));
+
 /** The map pin the intro is measured from: metres east and north of it. */
 export const ORIGIN = { lat: 24.4855142, lon: 54.3755735 };
 

@@ -4,10 +4,14 @@ import type { AnchorEls } from '../scenes/Anchors';
 import Stage from '../scenes/Stage';
 import IntroScene, { BEAT, newIntroState, type IntroHud, type IntroState } from '../scenes/intro/IntroScene';
 import { preloadSatellite } from '../scenes/intro/Satellite';
+import { geoData } from '../scenes/intro/data';
 
-// the map starts downloading as soon as this page's code arrives
+// the outline and the map start downloading as soon as this page's code arrives
+void geoData();
 preloadSatellite();
 import { Mark } from '../ui/TopBar';
+
+const PLACES = ['Dubai', 'Sharjah', 'Al Ain', 'Ras Al Khaimah', 'Fujairah'];
 
 export default function Intro() {
   const state = useRef<IntroState>(newIntroState());
@@ -53,11 +57,19 @@ export default function Intro() {
 
   return (
     <div className={`intro is-${stage}`}>
-      <Stage camera={{ position: [0, 16000, 0], fov: 34, near: 100, far: 4e5 }} bloom={0} plain="#f3f1ea">
+      <Stage camera={{ position: [0, 760000, 0], fov: 34, near: 1000, far: 4e7 }} bloom={0} plain="#f3f1ea">
         <IntroScene state={state} labels={labels} hud={hud} />
       </Stage>
 
       <div className="intro-labels" aria-hidden="true">
+        <div className="map-pin" ref={pin('uae')}>
+          <span className="map-country">United Arab Emirates</span>
+        </div>
+        {PLACES.map((p) => (
+          <div key={p} className="map-pin" ref={pin(`place:${p}`)}>
+            <span className="map-place">{p}</span>
+          </div>
+        ))}
         <div className="map-pin" ref={pin('campus')}>
           <span className="map-tag">
             <i />
@@ -101,11 +113,11 @@ export default function Intro() {
         </div>
         <div>
           <b>ALT</b>
-          <span ref={(el) => void (hud.current.alt = el)}>16 km</span>
+          <span ref={(el) => void (hud.current.alt = el)}>760 km</span>
         </div>
         <div className="intro-scale">
           <i />
-          <span ref={(el) => void (hud.current.scale = el)}>2 km</span>
+          <span ref={(el) => void (hud.current.scale = el)}>100 km</span>
         </div>
       </div>
 
@@ -139,7 +151,7 @@ export default function Intro() {
           <span className="mono">Supervisor · Zaid Hadya</span>
         </div>
         <p className="intro-fine">
-          Software-only proof of concept on a simulated zone. Results are modelled, not measured at Liwa University. Imagery © Esri, Maxar, Earthstar Geographics. Footprint © OpenStreetMap contributors.
+          Software-only proof of concept on a simulated zone. Results are modelled, not measured at Liwa University. Imagery © Esri, Maxar, Earthstar Geographics. Map data © OpenStreetMap contributors, Natural Earth.
         </p>
       </section>
       <div className="intro-veil" />

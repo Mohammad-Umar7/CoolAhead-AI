@@ -33,8 +33,8 @@ optimizer when one of them objects.
 
 ## What is in the demo
 
-1. **Intro.** A dive over real satellite imagery of Abu Dhabi, down to the
-   Liwa University building, with level 3 picked out.
+1. **Intro.** One zoom from the outline of the UAE straight down to the Liwa
+   University building, which stands on real satellite imagery of its block.
 2. **Agents.** One decision, built up on screen as it happens: the orchestrator
    starts alone, the cameras come on one room at a time with their detection
    boxes and a running tally of people, each agent appears when it is asked,
@@ -143,7 +143,8 @@ scenes. Python, OpenCV and Ultralytics YOLO for the vision step.
 
 - Classroom footage: see the table in `scripts/vision/README.md` for each clip's source and licence.
 - Satellite imagery in the intro: Esri World Imagery, © Esri, Maxar, Earthstar Geographics, loaded live from Esri's tile service.
-- Campus footprint: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, ODbL.
+- Country outline and borders: [Natural Earth](https://www.naturalearthdata.com/), public domain.
+- Campus footprint and city positions: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, ODbL.
 - Typefaces: Archivo, Instrument Serif, Geist and Geist Mono, SIL Open Font License.
 
 The campus building is drawn from its public footprint and is an illustration,
