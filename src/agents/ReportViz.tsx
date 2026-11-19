@@ -14,7 +14,6 @@ export default function ReportViz({ d, p }: { d: Decision; p: number }) {
   const head = idle ? '' : typed(d.report.headline, sub(p, 0.04, 0.3));
   const body = idle ? '' : typed(d.report.reason, sub(p, 0.28, 0.82));
   const writing = !idle && p < 0.82;
-  const facts = !idle && p >= 0.84;
   return (
     <div className={`rp${idle ? ' idle' : ''}`}>
       <div className="rp-badge" style={{ opacity: idle ? 0.25 : 1 }}>
@@ -28,11 +27,6 @@ export default function ReportViz({ d, p }: { d: Decision; p: number }) {
         {body}
         {writing && sub(p, 0.04, 0.3) >= 1 && <i className="rp-caret" />}
       </p>
-      <ul className={`rp-facts${facts ? ' on' : ''}`}>
-        {d.report.facts.slice(0, 2).map((f, i) => (
-          <li key={i}>{f}</li>
-        ))}
-      </ul>
     </div>
   );
 }

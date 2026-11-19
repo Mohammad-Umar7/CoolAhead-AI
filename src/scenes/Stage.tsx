@@ -51,8 +51,8 @@ export function Framing({ span, inset = {}, from, target = [0, 0, 0] }: FramePro
   useEffect(() => {
     // the canvas reports 0 x 0 for a moment before it is measured
     if (size.width < 8 || size.height < 8) return;
-    const freeW = Math.max(240 * k, size.width - left - right);
-    const freeH = Math.max(200 * k, size.height - top - bottom);
+    const freeW = Math.max(80 * k, size.width - left - right);
+    const freeH = Math.max(60 * k, size.height - top - bottom);
     const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     // back off until `span` fits the free width, and about two thirds of it the free height
     const byWidth = span / (2 * tan * (freeW / size.height));

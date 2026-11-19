@@ -1,11 +1,11 @@
+/* one centred column, no wider than the frame the stations were drawn for */
 .agents {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
-  padding: 14px 26px 12px;
+  padding: 82px max(26px, calc((100% - 1388px) / 2)) 10px;
   overflow: hidden;
-  padding-top: 84px;
 }
 
 /* ---------- header ---------- */
@@ -39,12 +39,12 @@
 
 .ag-events {
   display: flex;
-  gap: 5px;
+  gap: 4px;
 }
 
 .ag-event {
   height: 30px;
-  padding: 0 14px;
+  padding: 0 12px;
   border: 1px solid var(--glass-edge);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
@@ -249,7 +249,7 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 24px;
-  margin-top: 40px;
+  margin-top: 36px;
 }
 
 .station {
@@ -343,16 +343,17 @@
 
 .st-line {
   margin-top: 10px;
-  min-height: 46px;
+  min-height: 33px;
   font-size: 11.5px;
   line-height: 1.42;
   color: var(--tx-1);
   text-wrap: pretty;
 }
 
+/* every station has the same fixed work area, so nothing shifts while an agent is writing */
 .st-body {
-  flex: 1;
-  min-height: 228px;
+  flex: none;
+  height: 252px;
   margin-top: 8px;
   padding-top: 10px;
   border-top: 1px solid var(--line);
@@ -360,7 +361,7 @@
 }
 
 .st-out {
-  margin-top: 10px;
+  margin-top: 8px;
   padding-top: 9px;
   border-top: 1px solid var(--line);
   display: grid;
@@ -734,7 +735,7 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 2px;
+  gap: 1px;
 }
 
 .sf-item {
@@ -742,9 +743,9 @@
   grid-template-columns: 14px 1fr auto;
   align-items: center;
   gap: 8px;
-  height: 26px;
+  height: 23px;
   padding: 0 8px;
-  border-radius: 8px;
+  border-radius: 7px;
   font-size: 12px;
   color: var(--tx-2);
   transition: background 0.25s, color 0.25s;
@@ -800,7 +801,7 @@
 }
 
 .sf-note {
-  margin-top: 9px;
+  margin-top: 8px;
   min-height: 62px;
   padding-left: 9px;
   border-left: 1px solid var(--line-3);
@@ -821,7 +822,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  margin-top: 9px;
+  margin-top: 8px;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -859,7 +860,7 @@
 
 .rp-head {
   margin-top: 10px;
-  min-height: 40px;
+  min-height: 38px;
   font: 650 15px/1.26 var(--display);
   font-stretch: 106%;
   letter-spacing: -0.008em;
@@ -882,40 +883,6 @@
   animation: led 0.7s steps(2) infinite;
 }
 
-.rp-facts {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 9px 0 0;
-  border-top: 1px solid var(--line);
-  display: grid;
-  gap: 5px;
-  opacity: 0;
-  transition: opacity 0.5s;
-}
-
-.rp-facts.on {
-  opacity: 1;
-}
-
-.rp-facts li {
-  position: relative;
-  padding-left: 12px;
-  font-size: 11px;
-  line-height: 1.4;
-  color: var(--tx-0);
-}
-
-.rp-facts li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.48em;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--gold);
-}
-
 /* ---------- the way home ---------- */
 
 .ag-loop {
@@ -924,13 +891,15 @@
   flex: none;
   display: flex;
   justify-content: center;
-  margin-top: 22px;
+  margin-top: 16px;
 }
 
 .zonebox {
   display: grid;
-  grid-template-columns: 340px 280px;
-  height: 140px;
+  grid-template-columns: 236px 372px;
+  /* the row is pinned to the box: a canvas would otherwise size the row and then measure itself against it */
+  grid-template-rows: minmax(0, 1fr);
+  height: 104px;
   border: 1px solid var(--glass-edge);
   border-radius: var(--r-lg);
   background: var(--glass), var(--glass-tint);
@@ -956,10 +925,11 @@
 }
 
 .zb-text {
-  padding: 13px 15px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
   min-width: 0;
 }
 
@@ -985,7 +955,7 @@
   flex: none;
   position: relative;
   z-index: 2;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .passbar {
@@ -1001,7 +971,7 @@
 }
 
 .daystrip {
-  margin-top: 14px;
+  margin-top: 11px;
 }
 
 .ds-track {
@@ -1052,7 +1022,7 @@
 
 .ds-hours {
   position: relative;
-  height: 14px;
+  height: 13px;
   margin-top: 6px;
   font-size: 9.5px;
   color: var(--tx-2);
@@ -1072,7 +1042,7 @@
 }
 
 .ag-fine {
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 10.5px;
   color: var(--tx-2);
   text-align: center;

@@ -234,7 +234,7 @@ export default function Agents() {
       const zl = (z.left - box.left) * s;
       const zr = (z.right - box.left) * s;
       const zy = (z.top - box.top + z.height / 2) * s;
-      const up = 26;
+      const up = 21;
       const c = 9;
       const hops: string[] = [];
       const ports: [number, number][] = [];
@@ -245,7 +245,7 @@ export default function Agents() {
         const y = st[i].t;
         hops.push(`M${ox} ${y}V${y - up + c}Q${ox} ${y - up} ${ox + c} ${y - up}H${ix - c}Q${ix} ${y - up} ${ix} ${y - up + c}V${y}`);
         ports.push([ox, y], [ix, y]);
-        labels.push([(ox + ix) / 2, y - up - 8]);
+        labels.push([(ox + ix) / 2, y - up - 6]);
       }
       const last = st[st.length - 1];
       const first = st[0];
@@ -319,13 +319,13 @@ export default function Agents() {
             <Stage camera={{ position: [-22, 30, 34], fov: 24 }} bloom={0.5} studio>
               <FloorLights />
               <FloorScene source="cool" view="live" reflect={false} />
-              <Framing span={27} from={[-0.5, 0.6, 0.82]} target={[0, 0.8, 0.2]} />
+              <Framing span={23.5} from={[-0.5, 0.62, 0.82]} target={[0, 0.6, 0.6]} inset={{ top: 4, bottom: 4 }} />
             </Stage>
           </div>
           <div className="zb-text">
             <span className="label">Simulated zone AHU-3A</span>
             <strong>{zoneState === 'applied' ? `Running ${MODES[d.mode].label.toLowerCase()}` : zoneState === 'arriving' ? 'Recommendation arriving' : 'Awaiting this decision'}</strong>
-            <span className="zb-note">Applied to the model only. No building system is controlled. The cameras look again and the loop repeats every 5 minutes.</span>
+            <span className="zb-note">Applied to the model only: no building system is controlled. The cameras look again and the loop repeats every 5 minutes.</span>
           </div>
         </div>
       </div>

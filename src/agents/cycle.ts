@@ -6,7 +6,7 @@ import { DAY, useSim } from '../state/sim';
 export const AGENTS = [
   { id: 'vision', name: 'Vision', step: 'Monitor', line: 'Counts people in each room. Recognises no one.', hands: 'head counts, confidence, feed status' },
   { id: 'forecast', name: 'Forecast', step: 'Analyze', line: 'Blends the counts with the timetable, past attendance and weather.', hands: 'occupancy and cooling demand, next 60 min' },
-  { id: 'optimizer', name: 'Optimizer', step: 'Optimize', line: 'Runs every action through the thermal model. Keeps the cheapest that stays comfortable.', hands: 'proposed plan' },
+  { id: 'optimizer', name: 'Optimizer', step: 'Optimize', line: 'Simulates every action an hour ahead. Keeps the cheapest comfortable one.', hands: 'proposed plan' },
   { id: 'safety', name: 'Safety', step: 'Check', line: 'Six rules that only look at what is true right now. They win.', hands: 'approved plan' },
   { id: 'report', name: 'Report', step: 'Report', line: 'Writes the recommendation and the reason in plain words.', hands: 'recommendation for the facilities team' },
 ] as const;
