@@ -4,7 +4,6 @@ import { useMinute } from '../state/sim';
 
 const LINKS = [
   { to: '/twin', label: 'Twin' },
-  { to: '/vision', label: 'Vision' },
   { to: '/agents', label: 'Agents' },
   { to: '/compare', label: 'Before / After' },
 ];
