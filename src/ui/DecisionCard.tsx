@@ -51,21 +51,19 @@ export default function DecisionCard() {
 
       <div className="decision-plan">
         <span className="label">Plan for the next hour</span>
+        {/* the bar is to scale; the line under it says the same in words, so a five-minute stage is still readable */}
         <div className="plan-strip">
           {stages.map((s, i) => (
-            <div key={i} className="plan-seg" style={{ flex: s.to - s.from, '--c': MODE_COLOR[s.mode] } as React.CSSProperties}>
-              <span>{MODES[s.mode].short}</span>
-            </div>
+            <i key={i} style={{ flex: s.to - s.from, background: MODE_COLOR[s.mode], opacity: s.mode === 'STANDBY' ? 0.45 : 1 }} />
           ))}
         </div>
-        <div className="plan-axis mono">
-          <span>{fmtTime(d.t)}</span>
-          {stages.slice(1).map((s, i) => (
-            <span key={i} style={{ left: `${(s.from / 60) * 100}%` }} className="plan-tick">
-              {fmtTime(d.t + s.from)}
+        <div className="plan-steps mono">
+          {stages.map((s, i) => (
+            <span key={i} style={{ '--c': MODE_COLOR[s.mode] } as React.CSSProperties}>
+              {i > 0 && <em>→</em>}
+              {fmtTime(d.t + s.from)} <b>{MODES[s.mode].short}</b>
             </span>
           ))}
-          <span>{fmtTime(d.t + 60)}</span>
         </div>
       </div>
 

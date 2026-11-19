@@ -454,7 +454,7 @@
 .decision-head {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .mode-badge {
@@ -482,7 +482,7 @@
 }
 
 .decision-title {
-  margin-top: 12px;
+  margin-top: 11px;
   font: 650 20px/1.2 var(--display);
   font-stretch: 108%;
   letter-spacing: -0.012em;
@@ -499,8 +499,8 @@
 
 .decision-facts {
   list-style: none;
-  margin: 13px 0 0;
-  padding: 12px 0 0;
+  margin: 12px 0 0;
+  padding: 11px 0 0;
   border-top: 1px solid var(--line);
   display: grid;
   gap: 7px;
@@ -526,54 +526,47 @@
 }
 
 .decision-plan {
-  margin-top: 14px;
-  padding-top: 13px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid var(--line);
 }
 
 .plan-strip {
   display: flex;
-  gap: 3px;
-  margin-top: 9px;
-  height: 24px;
+  gap: 2px;
+  margin-top: 10px;
+  height: 8px;
 }
 
-.plan-seg {
-  min-width: 0;
+.plan-strip i {
+  min-width: 3px;
+  border-radius: 3px;
+}
+
+.plan-steps {
   display: flex;
-  align-items: center;
-  padding: 0 9px;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--c) 22%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 42%, transparent);
-  overflow: hidden;
-}
-
-.plan-seg span {
-  font: 600 9.5px/1 var(--mono);
-  letter-spacing: 0.1em;
-  color: var(--c);
+  margin-top: 8px;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--tx-1);
   white-space: nowrap;
 }
 
-.plan-axis {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  margin-top: 6px;
-  font-size: 10px;
+.plan-steps b {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--c);
+}
+
+.plan-steps em {
+  font-style: normal;
+  margin: 0 7px;
   color: var(--tx-2);
 }
 
-.plan-tick {
-  position: absolute;
-  transform: translateX(-50%);
-  color: var(--tx-1);
-}
-
 .decision-safety {
-  margin-top: 13px;
-  padding-top: 12px;
+  margin-top: 12px;
+  padding-top: 11px;
   border-top: 1px solid var(--line);
   display: flex;
   align-items: center;
