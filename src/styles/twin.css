@@ -531,6 +531,16 @@
   box-shadow: 0 0 0 4px rgba(10, 168, 132, 0.2);
 }
 
+.tag.room.blind i {
+  background: var(--hot);
+  box-shadow: 0 0 0 4px var(--hot-wash);
+}
+
+.tag.room.blind span {
+  color: var(--hot);
+  font-weight: 600;
+}
+
 .tag.room b {
   font-size: 14px;
   font-weight: 700;

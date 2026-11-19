@@ -108,7 +108,7 @@ const TITLES: Record<string, { flag: string; title: string }> = {
   allempty: { flag: 'All rooms empty', title: 'Every room on the air handler is empty.' },
   surge: { flag: 'Sudden crowd', title: 'A crowd walks in that the timetable knows nothing about.' },
   camera: { flag: 'Camera failure', title: 'A camera goes dark in the middle of a class.' },
-  evening: { flag: 'Late class', title: 'A late class runs on after the building timer has switched off.' },
+  evening: { flag: 'Late class', title: 'One small class runs late. The other two rooms are empty.' },
 };
 
 const sceneAt = (id: string, flag: string, title: string, t: number): Scene => {

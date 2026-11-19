@@ -97,7 +97,7 @@ export default function Country({ geo, state }: { geo: GeoData; state: React.Ref
     const s = state.current;
     if (!s) return;
     // everything at country scale fades as the camera drops through the tens of kilometres
-    const far = THREE.MathUtils.smoothstep(s.alt, 120000, 330000);
+    const far = THREE.MathUtils.smoothstep(s.alt, 9000, 60000);
     for (let i = 0; i < rings.length; i++) {
       const total = rings[i].length - 1;
       const shown = Math.max(0, Math.min(total, Math.floor(s.draw * total)));
@@ -111,7 +111,7 @@ export default function Country({ geo, state }: { geo: GeoData; state: React.Ref
     }
     mats.borders.opacity = 0.42 * s.detail * far;
     mats.neighbours.opacity = 0.8 * s.detail * far;
-    mats.dots.opacity = 0.62 * s.detail * THREE.MathUtils.smoothstep(s.alt, 60000, 240000);
+    mats.dots.opacity = 0.62 * s.detail * THREE.MathUtils.smoothstep(s.alt, 30000, 160000);
     mats.graticule.opacity = (0.5 + 0.5 * s.detail) * far;
   });
 

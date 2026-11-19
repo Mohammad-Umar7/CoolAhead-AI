@@ -128,7 +128,8 @@ function Storeys({ floors, upper, look }: { floors: number[]; upper: boolean; lo
     mats.strip.transparent = mats.strip.opacity < 0.995;
     strips.current.visible = mats.strip.opacity > 0.01;
     mats.pipe.opacity = base * l.xray;
-    if (pipes.current) pipes.current.visible = l.xray > 0.01;
+    // with level three open its own ducts are drawn in detail; the other zones' would only be noise
+    if (pipes.current) pipes.current.visible = l.xray > 0.01 && open < 0.5;
     const shadows = base > 0.6 && l.xray < 0.5;
     for (const m of [slabs, cores, mutes, rooms]) m.current!.castShadow = shadows;
 

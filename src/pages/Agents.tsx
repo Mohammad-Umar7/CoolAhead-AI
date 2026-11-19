@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { create } from 'zustand';
-import { MODES, ROOMS, ZONE, fmtTime } from '../engine/config';
+import { COMFORT_HI, MODES, ROOMS, ZONE, fmtTime } from '../engine/config';
 import type { Decision, Mode } from '../engine/types';
 import { ROOM_CLIP, emptyClip } from '../data/footage';
 import { MODE_LABEL } from '../lib/day';
@@ -65,7 +65,7 @@ function Room({ room, d }: { room: number; d: Decision }) {
       </span>
       <span className={`room-rec mono${online ? '' : ' down'}`}>
         <i />
-        {online ? 'Live' : 'No signal'}
+        {online ? 'Live' : 'Offline'}
       </span>
       <span className={`room-count${online ? '' : ' down'}`}>
         <strong className="num">{online ? shown : '?'}</strong>
@@ -299,14 +299,14 @@ function Optimizer({ d }: { d: Decision }) {
       <div className="plans">
         {rows.map((r, i) => {
           const run = p < 0 ? 0 : ease(sub(p, 0.03 + i * 0.13, 0.34 + i * 0.13));
-          const state = !judged ? '' : !r.c.comfortable ? ' bad' : r.chosen && settled ? ' chosen' : settled ? ' more' : '';
+          const state = !judged ? '' : r.chosen && settled ? ' chosen' : verdict(r.c) === 'not needed' ? ' more' : !r.c.comfortable ? ' bad' : settled ? ' more' : '';
           return (
             <div key={r.mode} className={`plan${state}`} data-mode={r.mode}>
               <span className="plan-name">{MODE_LABEL[r.mode]}</span>
               <span className="plan-bar">
                 <i style={{ width: `${Math.max(2, (r.c.energy / top) * 100) * run}%` }} />
               </span>
-              <span className="plan-note">{!judged ? '' : !r.c.comfortable ? 'too warm' : r.chosen && settled ? 'chosen' : ''}</span>
+              <span className="plan-note">{!judged ? '' : r.chosen && settled ? 'chosen' : verdict(r.c) || (settled ? 'costs more' : '')}</span>
             </div>
           );
         })}
@@ -340,6 +340,17 @@ function Safety({ d }: { d: Decision }) {
   );
 }
 
+/**
+ * Why a plan lost, in two words. A plan that was never in the running (pre-cooling with nobody on the
+ * way) is "not needed"; one that leaves an occupied room too cold is "too cold"; otherwise "too warm".
+ */
+function verdict(c: Decision['candidates'][number]): string {
+  if (c.comfortable) return '';
+  if (c.discomfort === 0) return 'not needed';
+  if (c.peakRoom >= 0 && c.peak <= COMFORT_HI - 0.3) return 'too cold';
+  return 'too warm';
+}
+
 /** Whether this decision turns the cooling up or down, against the last time the mode was different. */
 function direction(index: number): { way: 'up' | 'down' | 'hold'; text: string } {
   const now = DAY.decisions[index].mode;
@@ -347,7 +358,7 @@ function direction(index: number): { way: 'up' | 'down' | 'hold'; text: string }
     const before = DAY.decisions[i].mode;
     if (before === now) continue;
     const up = RANK[now] > RANK[before];
-    return { way: up ? 'up' : 'down', text: `${up ? 'More' : 'Less'} cooling than at ${fmtTime(DAY.decisions[i].t)}` };
+    return { way: up ? 'up' : 'down', text: `${up ? 'Up' : 'Down'} from ${MODE_LABEL[before].toLowerCase()}` };
   }
   return { way: 'hold', text: 'No change' };
 }

@@ -85,7 +85,9 @@ function Inside({ applied, onNext }: { applied: number | null; onNext: () => voi
   const minute = useMinute();
   const d = decisionAt(DAY, minute);
   const rooms = ROOMS.map((r, i) => ({ id: r.id, n: Math.round(at(DAY.occ[i], minute)), seats: r.capacity, online: DAY.online[i][Math.min(DAY.steps, minute - DAY.t0)] === 1 }));
-  const total = rooms.reduce((sum, r) => sum + r.n, 0);
+  // a room whose camera is down is not counted: the system does not know how many are in it
+  const total = rooms.reduce((sum, r) => sum + (r.online ? r.n : 0), 0);
+  const down = rooms.filter((r) => !r.online).length;
   // which way the cooling last moved
   let way: 'up' | 'down' | 'hold' = 'hold';
   for (let i = DAY.decisions.indexOf(d) - 1; i >= 0; i--) {
@@ -103,7 +105,7 @@ function Inside({ applied, onNext }: { applied: number | null; onNext: () => voi
         <span>
           people counted
           <br />
-          by the cameras right now
+          {down ? `${down} camera down, not counted` : 'by the cameras right now'}
         </span>
       </div>
       <ul className="tally-rooms">
@@ -111,7 +113,7 @@ function Inside({ applied, onNext }: { applied: number | null; onNext: () => voi
           <li key={r.id} className={r.online ? '' : 'down'}>
             <span>{r.id}</span>
             <i>
-              <b style={{ width: `${Math.min(100, (r.n / r.seats) * 100)}%` }} />
+              <b style={{ width: `${r.online ? Math.min(100, (r.n / r.seats) * 100) : 0}%` }} />
             </i>
             <strong className="num">{r.online ? r.n : '?'}</strong>
           </li>
@@ -154,11 +156,14 @@ function Caption() {
   const minute = useMinute();
   const d = decisionAt(DAY, minute);
   const k = Math.min(DAY.steps, minute - DAY.t0);
-  const busy = ROOMS.filter((_, i) => Math.round(at(DAY.occ[i], minute)) >= 1).map((r) => r.id);
-  const empty = ROOMS.filter((_, i) => Math.round(at(DAY.occ[i], minute)) < 1).map((r) => r.id);
+  // a room whose camera is down is described as the system sees it: assumed occupied, not counted
   const lost = ROOMS.filter((_, i) => DAY.online[i][k] !== 1).map((r) => r.id);
+  const seen = ROOMS.filter((r) => !lost.includes(r.id));
+  const busy = seen.filter((r) => Math.round(at(DAY.occ[ROOMS.indexOf(r)], minute)) >= 1).map((r) => r.id);
+  const empty = seen.filter((r) => Math.round(at(DAY.occ[ROOMS.indexOf(r)], minute)) < 1).map((r) => r.id);
   const fan = Math.round(MODES[d.mode].fan * 100);
-  const who = !busy.length ? 'Nobody in the zone' : !empty.length ? 'All three rooms in use' : `${list(busy)} in use, ${list(empty)} empty`;
+  const parts = [lost.length ? `${list(lost)} assumed occupied` : '', busy.length ? `${list(busy)} in use` : '', empty.length ? `${list(empty)} empty` : ''].filter(Boolean);
+  const who = !lost.length && !busy.length ? 'Nobody in the zone' : !lost.length && !empty.length ? 'All three rooms in use' : parts.join(', ');
   return (
     <p className="twin-caption" data-mode={d.mode}>
       {lost.length > 0 && <span className="cap-warn">{list(lost)} camera down</span>}
@@ -193,16 +198,17 @@ function Tags({ els, scope, layer }: { els: React.RefObject<AnchorEls>; scope: S
         const people = Math.round(at(DAY.occ[i], minute));
         const temp = at(DAY.cool.ta[i], minute);
         const warm = temp > COMFORT_HI;
+        const blind = DAY.online[i][Math.min(DAY.steps, minute - DAY.t0)] !== 1;
         return (
           <div key={r.id} className="tag-pin for-zone" ref={pin(`room${i}`)}>
-            <span className={`tag room${people >= 1 ? ' busy' : ''}`}>
+            <span className={`tag room${blind ? ' blind' : people >= 1 ? ' busy' : ''}`}>
               <i />
               <b>{r.id}</b>
               {layer === 'xray' ? (
                 <span>{SHARE[i]}% of the air</span>
               ) : (
                 <>
-                  <span>{people >= 1 ? `${people} ${people === 1 ? 'person' : 'people'}` : 'empty'}</span>
+                  <span>{blind ? 'camera down' : people >= 1 ? `${people} ${people === 1 ? 'person' : 'people'}` : 'empty'}</span>
                   <em className={warm ? 'warm' : ''}>{temp.toFixed(1)}°</em>
                 </>
               )}
