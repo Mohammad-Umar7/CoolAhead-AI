@@ -40,6 +40,12 @@ export default function ForecastViz({ d, p }: { d: Decision; p: number }) {
       .map((v, k) => `L${x(n - 1 - k).toFixed(1)} ${fy(lo[n - 1 - k]).toFixed(1)}`)
       .join('')}Z`;
 
+  // each line is named where it ends; names that would land on top of each other are nudged apart
+  const ends = ROOMS.map((_, i) => ({ i, at: y(f.occ[i][n - 1]) + 3 })).sort((a, b) => a.at - b.at);
+  for (let j = 1; j < ends.length; j++) ends[j].at = Math.max(ends[j].at, ends[j - 1].at + 9);
+  for (let j = ends.length - 1; j >= 0; j--) ends[j].at = Math.min(ends[j].at, TOP + CH + 3 - (ends.length - 1 - j) * 9);
+  const endY = ROOMS.map((_, i) => ends.find((e) => e.i === i)!.at);
+
   const starts = TIMETABLE.filter((b) => b.start > d.t + 2 && b.start <= d.t + 58);
   const demandNow = f.demand[0];
   const demandPeak = Math.max(...f.demand);
@@ -90,9 +96,8 @@ export default function ForecastViz({ d, p }: { d: Decision; p: number }) {
         <path className="fc-demand-line" d={path(f.demand, dy)} />
       </g>
 
-      {/* each line is named where it ends */}
       {ROOMS.map((room, i) => (
-        <text key={room.id} className={`fc-end ${BASIS[f.basis[i]].cls}`} x={W - R + 4} y={y(f.occ[i][n - 1]) + 3 + (i - 1) * 0.01} opacity={drawn >= 0.98 ? 1 : 0}>
+        <text key={room.id} className={`fc-end ${BASIS[f.basis[i]].cls}`} x={W - R + 4} y={endY[i]} opacity={drawn >= 0.98 ? 1 : 0}>
           {room.id.slice(2)}
         </text>
       ))}
