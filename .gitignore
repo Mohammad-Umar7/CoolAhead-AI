@@ -8,3 +8,6 @@ dist
 scripts/.cache
 __pycache__
 *.pt
+
+.vercel
+.env*
