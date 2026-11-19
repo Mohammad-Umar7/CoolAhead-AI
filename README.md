@@ -40,7 +40,8 @@ optimizer when one of them objects.
    boxes and a running tally of people, each agent appears when it is asked,
    and the recommendation arrives last, saying whether cooling goes up or down.
    Seven situations can be stepped through, and any of them replayed.
-3. **Digital twin.** A model of the whole building. Opening level 3 shows the
+3. **Digital twin.** A model of the whole building, standing on a washed-out
+   copy of the same satellite map. Opening level 3 shows the
    decision running: a detection box on every student, the tally room by room,
    students walking out when a class ends, cold air leaving the ducts and warm
    air going back. Three views: temperature, a people heat map, and an x-ray

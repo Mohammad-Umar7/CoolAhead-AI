@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CAMPUS, ORIGIN } from './data';
@@ -6,10 +6,11 @@ import type { IntroState } from './IntroScene';
 
 /**
  * The ground the building stands on: real satellite imagery round the campus,
- * printed in sepia so it sits on the same paper as the rest of the app, with
- * the campus block left in full colour. Three layers of map tiles, from 3 km
- * across down to 700 m, each sharper than the one under it. It comes up with
- * the building; on the way down there is only the outline of the country.
+ * printed in sepia so it sits on the same paper as the rest of the app. Three
+ * layers of map tiles, from 3 km across down to 700 m, each sharper than the
+ * one under it. The tiles are downloaded once and shared: the intro shows them
+ * with the campus in colour, the digital twin shows them washed out, so the
+ * model on top of them stays the thing you look at.
  */
 
 const R = 6371008.8;
@@ -27,7 +28,6 @@ interface LayerSpec {
   ring: [number, number];
 }
 
-/** Only the ground round the building: it appears with the building and nowhere else. */
 const LAYERS: LayerSpec[] = [
   { z: 16, span: 3, edge: 0.02, ring: [700, 1600] },
   { z: 17, span: 3, edge: 0.02, ring: [380, 800] },
@@ -64,6 +64,7 @@ const fragment = /* glsl */ `
   uniform sampler2D uMap;
   uniform vec2 uFocus;
   uniform float uColor;
+  uniform float uWash;
   uniform float uEdge;
   uniform vec2 uRing;
   uniform float uFar;
@@ -79,6 +80,8 @@ const fragment = /* glsl */ `
     float d = distance(vWorld.xz, uFocus);
     float keep = (1.0 - smoothstep(70.0, 190.0, d)) * uColor;
     vec3 col = mix(print, t.rgb * 1.12, keep);
+    // washed towards the page, so whatever stands on the map reads first
+    col = mix(col, vec3(0.9, 0.88, 0.82), uWash);
     // each layer dissolves in a wide ring round the campus, under the sharper one above it and finally into the paper
     float e = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
     float ring = 1.0 - smoothstep(uRing.x, uRing.y, d);
@@ -88,17 +91,18 @@ const fragment = /* glsl */ `
   }
 `;
 
-interface Layer {
-  mesh: THREE.Mesh;
-  material: THREE.ShaderMaterial;
+/** One layer of tiles: its picture, where it lies, and whether all of it has arrived. */
+interface Tiles {
+  spec: LayerSpec;
+  order: number;
   texture: THREE.CanvasTexture;
+  geometry: THREE.PlaneGeometry;
+  position: THREE.Vector3;
   load: () => Promise<void>;
-  /** all tiles are in; the texture still has to go to the graphics card */
   ready: boolean;
-  sent: boolean;
 }
 
-function makeLayer(spec: LayerSpec, order: number): Layer {
+function makeTiles(spec: LayerSpec, order: number): Tiles {
   const n = 2 ** spec.z;
   const [cx, cy] = tileOf(spec.z, ORIGIN.lat, ORIGIN.lon);
   const x0 = cx - spec.span;
@@ -115,34 +119,17 @@ function makeLayer(spec: LayerSpec, order: number): Layer {
   const h = north(latOf(y0, n)) - north(latOf(y0 + count, n));
   const geometry = new THREE.PlaneGeometry(w, h);
   geometry.rotateX(-Math.PI / 2);
-  const material = new THREE.ShaderMaterial({
-    vertexShader: vertex,
-    fragmentShader: fragment,
-    uniforms: {
-      uMap: { value: texture },
-      uFocus: { value: new THREE.Vector2(CAMPUS.east, -CAMPUS.north) },
-      uColor: { value: 0 },
-      uEdge: { value: spec.edge },
-      uRing: { value: new THREE.Vector2(spec.ring[0], spec.ring[1]) },
-      uFar: { value: 1e6 },
-      uOn: { value: 1 },
-    },
-    transparent: true,
-    depthWrite: false,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set((east(lonOf(x0, n)) + east(lonOf(x0 + count, n))) / 2, 0, -(north(latOf(y0, n)) + north(latOf(y0 + count, n))) / 2);
-  mesh.renderOrder = -10 + order;
-  mesh.frustumCulled = false;
+  const position = new THREE.Vector3((east(lonOf(x0, n)) + east(lonOf(x0 + count, n))) / 2, 0, -(north(latOf(y0, n)) + north(latOf(y0 + count, n))) / 2);
 
-  const load = () =>
+  const tiles: Tiles = { spec, order, texture, geometry, position, load: () => Promise.resolve(), ready: false };
+  tiles.load = () =>
     new Promise<void>((done) => {
       let left = count * count;
       // the texture is sent to the graphics card once, when the last tile is in, not once per tile
       const finish = () => {
         if (--left > 0) return;
         texture.needsUpdate = true;
-        layer.ready = true;
+        tiles.ready = true;
         done();
       };
       for (let j = 0; j < count; j++) {
@@ -158,53 +145,109 @@ function makeLayer(spec: LayerSpec, order: number): Layer {
         }
       }
     });
-  const layer: Layer = { mesh, material, texture, load, ready: false, sent: false };
-  return layer;
+  return tiles;
 }
 
-let layers: Layer[] | null = null;
-/** Built once and kept, so a second visit to the intro does not download the map again. */
+let layers: Tiles[] | null = null;
+/** Downloaded once and kept, so moving between the intro and the twin does not fetch the map again. */
 function ground() {
   if (!layers) {
-    layers = LAYERS.map(makeLayer);
+    layers = LAYERS.map(makeTiles);
     // widest first: it is under everything else
     void layers.reduce((chain, l) => chain.then(() => l.load()), Promise.resolve());
   }
   return layers;
 }
 
-/** Start downloading the map before the intro is on screen. */
+/** Start downloading the map before it is needed. */
 export const preloadSatellite = () => void ground();
 
-export default function Satellite({ state }: { state: React.RefObject<IntroState> }) {
+/** Meshes of the map for one scene, each with its own material, and the textures sent to that scene's graphics card as they arrive. */
+function useMap(focus: [number, number], wash: number) {
   const all = useMemo(ground, []);
+  const meshes = useMemo(
+    () =>
+      all.map((t) => {
+        const material = new THREE.ShaderMaterial({
+          vertexShader: vertex,
+          fragmentShader: fragment,
+          uniforms: {
+            uMap: { value: t.texture },
+            uFocus: { value: new THREE.Vector2(focus[0], focus[1]) },
+            uColor: { value: 0 },
+            uWash: { value: wash },
+            uEdge: { value: t.spec.edge },
+            uRing: { value: new THREE.Vector2(t.spec.ring[0], t.spec.ring[1]) },
+            uFar: { value: 1e6 },
+            uOn: { value: 1 },
+          },
+          transparent: true,
+          depthWrite: false,
+        });
+        const mesh = new THREE.Mesh(t.geometry, material);
+        mesh.position.copy(t.position);
+        mesh.renderOrder = -10 + t.order;
+        mesh.frustumCulled = false;
+        return mesh;
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [all],
+  );
+  useEffect(() => () => meshes.forEach((m) => (m.material as THREE.Material).dispose()), [meshes]);
+
   const gl = useThree((s) => s.gl);
+  const sent = useRef(new Set<Tiles>());
   useFrame(({ camera }) => {
-    // upload each layer as soon as it is complete, long before the building comes up, so nothing stutters then
-    for (const l of all) {
-      if (l.ready && !l.sent) {
-        gl.initTexture(l.texture);
-        l.sent = true;
+    // upload each layer as soon as it is complete, one per frame, before it is ever on screen
+    for (const t of all) {
+      if (t.ready && !sent.current.has(t)) {
+        gl.initTexture(t.texture);
+        sent.current.add(t);
         break;
       }
     }
+    for (const m of meshes) (m.material as THREE.ShaderMaterial).uniforms.uFar.value = (camera as THREE.PerspectiveCamera).far;
+  });
+  return meshes;
+}
+
+/** The intro's ground: it comes up with the building, and the campus turns to colour as the camera arrives. */
+export default function Satellite({ state }: { state: React.RefObject<IntroState> }) {
+  const meshes = useMap([CAMPUS.east, -CAMPUS.north], 0);
+  useFrame(() => {
     const s = state.current;
     if (!s) return;
-    // the campus comes into colour as the camera arrives over it
     const colour = 1 - THREE.MathUtils.smoothstep(s.alt, 160, 1400);
     const on = 1 - THREE.MathUtils.smoothstep(s.alt, 1200, 4200);
-    for (const l of all) {
-      l.mesh.visible = on > 0.005;
-      l.material.uniforms.uOn.value = on;
-      l.material.uniforms.uColor.value = colour;
-      l.material.uniforms.uFar.value = (camera as THREE.PerspectiveCamera).far;
+    for (const m of meshes) {
+      const u = (m.material as THREE.ShaderMaterial).uniforms;
+      m.visible = on > 0.005;
+      u.uOn.value = on;
+      u.uColor.value = colour;
     }
   });
   return (
     <group>
-      {all.map((l, i) => (
-        <primitive key={i} object={l.mesh} />
+      {meshes.map((m, i) => (
+        <primitive key={i} object={m} />
       ))}
+    </group>
+  );
+}
+
+/**
+ * The same map under the digital twin: laid so the real campus block is
+ * under the model, turned to the model's axes, and washed out.
+ */
+export function MapGround({ wash = 0.55, y = -1.4 }: { wash?: number; y?: number }) {
+  const meshes = useMap([0, 0], wash);
+  return (
+    <group position-y={y} rotation-y={-CAMPUS.yaw}>
+      <group position={[-CAMPUS.east, 0, CAMPUS.north]}>
+        {meshes.map((m, i) => (
+          <primitive key={i} object={m} />
+        ))}
+      </group>
     </group>
   );
 }

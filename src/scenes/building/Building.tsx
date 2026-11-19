@@ -7,6 +7,7 @@ import { damp } from '../../lib/frame';
 import { useSim } from '../../state/sim';
 import Anchors, { type AnchorEls, type AnchorPoint } from '../Anchors';
 import { AHU_POS, BOUNDS, DUCTS, LENGTH as PLAN_W, OTHER, PLAN, PLANT } from '../floor/layout';
+import { MapGround } from '../intro/Satellite';
 import Dressing from './Dressing';
 import Interior from './Interior';
 import { smooth as ease, type Look } from './kit';
@@ -146,15 +147,18 @@ function Storeys({ floors, upper, look }: { floors: number[]; upper: boolean; lo
           cg += (PAPER[1] - cg) * k;
           cb += (PAPER[2] - cb) * k;
           const b = ROOM_BOXES[r];
-          const h = ROOM_H + (0.08 - ROOM_H) * open;
-          place(rooms.current!, i * 3 + r, s.x + b.x, s.y + h / 2, s.z + b.z, b.w - 0.3, h, b.d - 0.3);
+          // the simulated rooms flatten into their floors; the other wings on the floor shrink away to nothing
+          const h = s.live ? ROOM_H + (0.08 - ROOM_H) * open : ROOM_H * (1 - open);
+          const size = s.live ? 1 : Math.max(0.001, 1 - open);
+          place(rooms.current!, i * 3 + r, s.x + b.x, s.y + h / 2, s.z + b.z, (b.w - 0.3) * size, Math.max(0.001, h), (b.d - 0.3) * size);
         }
         rooms.current!.setColorAt(i * 3 + r, color.setRGB(cr, cg, cb, THREE.SRGBColorSpace));
       }
       if (s.floor === LIVE.floor) {
-        const h = ROOM_H + (0.08 - ROOM_H) * open;
-        place(mutes.current!, i * 2, s.x + (PLANT.x0 + PLANT.x1) / 2, s.y + h / 2, s.z + (PLANT.z0 + PLANT.z1) / 2, PLANT.x1 - PLANT.x0 - 0.3, h, PLANT.z1 - PLANT.z0 - 0.3);
-        place(mutes.current!, i * 2 + 1, s.x + (OTHER.x0 + OTHER.x1) / 2, s.y + h / 2, s.z + (OTHER.z0 + OTHER.z1) / 2, OTHER.x1 - OTHER.x0 - 0.3, h, OTHER.z1 - OTHER.z0 - 0.3);
+        const h = Math.max(0.001, s.live ? ROOM_H + (0.08 - ROOM_H) * open : ROOM_H * (1 - open));
+        const k = s.live ? 1 : Math.max(0.001, 1 - open);
+        place(mutes.current!, i * 2, s.x + (PLANT.x0 + PLANT.x1) / 2, s.y + h / 2, s.z + (PLANT.z0 + PLANT.z1) / 2, (PLANT.x1 - PLANT.x0 - 0.3) * k, h, (PLANT.z1 - PLANT.z0 - 0.3) * k);
+        place(mutes.current!, i * 2 + 1, s.x + (OTHER.x0 + OTHER.x1) / 2, s.y + h / 2, s.z + (OTHER.z0 + OTHER.z1) / 2, (OTHER.x1 - OTHER.x0 - 0.3) * k, h, (OTHER.z1 - OTHER.z0 - 0.3) * k);
         rooms.current!.instanceMatrix.needsUpdate = true;
         mutes.current!.instanceMatrix.needsUpdate = true;
       }
@@ -223,6 +227,8 @@ export default function Building({ layer, focus, tags }: Props) {
         <circleGeometry args={[320, 64]} />
         <shadowMaterial transparent opacity={0.22} />
       </mesh>
+      {/* the real block round the campus, washed out so the model stays in front */}
+      <MapGround wash={0.55} y={-1.4} />
 
       <Storeys floors={LOWER} upper={false} look={look} />
       <Storeys floors={UPPER} upper look={look} />

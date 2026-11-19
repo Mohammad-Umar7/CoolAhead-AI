@@ -9,11 +9,15 @@ import type { AnchorEls } from '../scenes/Anchors';
 import LightStage, { Rig, type Shot } from '../scenes/LightStage';
 import { IdleSway } from '../scenes/Stage';
 import Building, { type Layer } from '../scenes/building/Building';
+import { preloadSatellite } from '../scenes/intro/Satellite';
 import { FLOORS, HEAT_CSS, HEIGHT, SPOTS, TEMP_CSS, ZONES, liveIndex, sampleBuilding } from '../scenes/building/model';
 import { DAY, at, useMinute, useSim } from '../state/sim';
 import Ribbon from '../ui/Ribbon';
 
 type Scope = 'building' | 'zone';
+
+// the map under the building starts downloading as soon as this page's code arrives
+preloadSatellite();
 
 const LIVE = SPOTS[liveIndex];
 const WHOLE: Shot = { target: [0, HEIGHT * 0.47, 0], from: [-0.62, 0.34, 0.71], span: 100, rise: 66 };
