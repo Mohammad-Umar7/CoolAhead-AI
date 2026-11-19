@@ -224,14 +224,16 @@ export default function Agents() {
     const measure = () => {
       if (!stage.current || !row.current || !zone.current) return;
       const box = stage.current.getBoundingClientRect();
+      // client rectangles come back in screen pixels; the rail is drawn in layout pixels
+      const s = stage.current.offsetWidth / box.width || 1;
       const st = Array.from(row.current.children).map((el) => {
         const r = el.getBoundingClientRect();
-        return { l: r.left - box.left, r: r.right - box.left, t: r.top - box.top, b: r.bottom - box.top };
+        return { l: (r.left - box.left) * s, r: (r.right - box.left) * s, t: (r.top - box.top) * s, b: (r.bottom - box.top) * s };
       });
       const z = zone.current.getBoundingClientRect();
-      const zl = z.left - box.left;
-      const zr = z.right - box.left;
-      const zy = z.top - box.top + z.height / 2;
+      const zl = (z.left - box.left) * s;
+      const zr = (z.right - box.left) * s;
+      const zy = (z.top - box.top + z.height / 2) * s;
       const up = 26;
       const c = 9;
       const hops: string[] = [];
@@ -251,7 +253,7 @@ export default function Agents() {
       const lx = first.l + 30;
       const back: [string, string] = [`M${rx} ${last.b}V${zy - c}Q${rx} ${zy} ${rx - c} ${zy}H${zr}`, `M${zl} ${zy}H${lx + c}Q${lx} ${zy} ${lx} ${zy - c}V${first.b}`];
       ports.push([rx, last.b], [lx, first.b]);
-      setGeo({ w: box.width, h: box.height, hops, back, ports, labels });
+      setGeo({ w: box.width * s, h: box.height * s, hops, back, ports, labels });
     };
     measure();
     const ro = new ResizeObserver(measure);

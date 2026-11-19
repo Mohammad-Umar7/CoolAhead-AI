@@ -4,6 +4,7 @@ import { Environment, Lightformer } from '@react-three/drei';
 import { Bloom, EffectComposer, N8AO, SMAA, TiltShift2, ToneMapping, Vignette } from '@react-three/postprocessing';
 import { ToneMappingMode } from 'postprocessing';
 import * as THREE from 'three';
+import { uiScale } from '../lib/fit';
 import { brandBackground } from '../lib/theme';
 
 interface Props {
@@ -22,7 +23,7 @@ interface Props {
 interface FrameProps {
   /** width of the subject along the screen, metres */
   span: number;
-  /** screen space the panels take, in CSS pixels */
+  /** screen space the panels take, in layout pixels */
   inset?: { left?: number; right?: number; top?: number; bottom?: number };
   /** direction the camera looks from, relative to the target */
   from: [number, number, number];
@@ -38,15 +39,20 @@ export function Framing({ span, inset = {}, from, target = [0, 0, 0] }: FramePro
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const size = useThree((s) => s.size);
   const controls = useThree((s) => s.controls) as unknown as { target: THREE.Vector3; update: () => void } | null;
-  const { left = 0, right = 0, top = 0, bottom = 0 } = inset;
   const [fx, fy, fz] = from;
   const [tx, ty, tz] = target;
+  // insets are given in layout pixels; the canvas is measured in screen pixels
+  const k = uiScale();
+  const left = (inset.left ?? 0) * k;
+  const right = (inset.right ?? 0) * k;
+  const top = (inset.top ?? 0) * k;
+  const bottom = (inset.bottom ?? 0) * k;
 
   useEffect(() => {
     // the canvas reports 0 x 0 for a moment before it is measured
     if (size.width < 8 || size.height < 8) return;
-    const freeW = Math.max(240, size.width - left - right);
-    const freeH = Math.max(200, size.height - top - bottom);
+    const freeW = Math.max(240 * k, size.width - left - right);
+    const freeH = Math.max(200 * k, size.height - top - bottom);
     const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     // back off until `span` fits the free width, and about two thirds of it the free height
     const byWidth = span / (2 * tan * (freeW / size.height));
@@ -65,7 +71,7 @@ export function Framing({ span, inset = {}, from, target = [0, 0, 0] }: FramePro
       camera.clearViewOffset();
       camera.updateProjectionMatrix();
     };
-  }, [camera, controls, size.width, size.height, span, left, right, top, bottom, fx, fy, fz, tx, ty, tz]);
+  }, [camera, controls, size.width, size.height, span, k, left, right, top, bottom, fx, fy, fz, tx, ty, tz]);
   return null;
 }
 
@@ -127,32 +133,34 @@ function StudioLight() {
 /** Shared canvas set-up: one look for every 3D view in the app. */
 export default function Stage({ children, camera, bloom = 0.55, className, plain, studio = false, tilt = 0 }: Props) {
   return (
-    <Canvas
-      className={className}
-      shadows={studio ? 'soft' : false}
-      dpr={[1, 1.75]}
-      gl={{ antialias: false, powerPreference: 'high-performance', alpha: false }}
-      camera={{ fov: 30, near: 0.5, far: 400, ...camera }}
-      onCreated={(state) => {
-        const { scene } = state;
-        if (import.meta.env.DEV) (window as unknown as { __three: unknown }).__three = state;
-        scene.background = plain ? new THREE.Color(plain) : brandBackground();
-      }}
-    >
-      <Suspense fallback={null}>
-        {studio && <StudioLight />}
-        {children}
-      </Suspense>
-      {/* multisampling stays off: the composer's MSAA blit fails on some GPU back ends and blanks the frame */}
-      <EffectComposer multisampling={0}>
-        {studio ? <N8AO aoRadius={1.4} intensity={2.4} distanceFalloff={0.8} color="#06112a" quality="medium" /> : <></>}
-        <Bloom mipmapBlur intensity={bloom} luminanceThreshold={studio ? 1.0 : 0.82} luminanceSmoothing={studio ? 0.12 : 0.2} radius={studio ? 0.55 : 0.7} />
-        {/* linear: the university navy and gold must come out exactly as authored, and filmic curves shift dark blues */}
-        <ToneMapping mode={ToneMappingMode.LINEAR} />
-        {tilt > 0 ? <TiltShift2 blur={tilt} taper={0.55} samples={8} /> : <></>}
-        <SMAA />
-        <Vignette offset={0.3} darkness={0.38} />
-      </EffectComposer>
-    </Canvas>
+    <div className="unscaled">
+      <Canvas
+        className={className}
+        shadows={studio ? 'soft' : false}
+        dpr={[1, 1.75]}
+        gl={{ antialias: false, powerPreference: 'high-performance', alpha: false }}
+        camera={{ fov: 30, near: 0.5, far: 400, ...camera }}
+        onCreated={(state) => {
+          const { scene } = state;
+          if (import.meta.env.DEV) (window as unknown as { __three: unknown }).__three = state;
+          scene.background = plain ? new THREE.Color(plain) : brandBackground();
+        }}
+      >
+        <Suspense fallback={null}>
+          {studio && <StudioLight />}
+          {children}
+        </Suspense>
+        {/* multisampling stays off: the composer's MSAA blit fails on some GPU back ends and blanks the frame */}
+        <EffectComposer multisampling={0}>
+          {studio ? <N8AO aoRadius={1.4} intensity={2.4} distanceFalloff={0.8} color="#06112a" quality="medium" /> : <></>}
+          <Bloom mipmapBlur intensity={bloom} luminanceThreshold={studio ? 1.0 : 0.82} luminanceSmoothing={studio ? 0.12 : 0.2} radius={studio ? 0.55 : 0.7} />
+          {/* linear: the university navy and gold must come out exactly as authored, and filmic curves shift dark blues */}
+          <ToneMapping mode={ToneMappingMode.LINEAR} />
+          {tilt > 0 ? <TiltShift2 blur={tilt} taper={0.55} samples={8} /> : <></>}
+          <SMAA />
+          <Vignette offset={0.3} darkness={0.38} />
+        </EffectComposer>
+      </Canvas>
+    </div>
   );
 }

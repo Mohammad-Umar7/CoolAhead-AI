@@ -207,7 +207,7 @@
   z-index: 3;
   left: 40px;
   bottom: 40px;
-  width: min(590px, calc(100vw - 80px));
+  width: 590px;
   padding: 34px 36px 30px;
   border: 1px solid var(--glass-edge);
   border-radius: 28px;
@@ -227,7 +227,7 @@
 
 .intro-title h1 {
   margin: 14px 0 16px;
-  font-size: clamp(48px, 5.6vw, 82px);
+  font-size: 80px;
   line-height: 0.94;
   letter-spacing: -0.035em;
 }

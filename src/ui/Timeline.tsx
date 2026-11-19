@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FIXED, FIXED_TIGHT, MODES, ROOMS, SURPRISES, T0, TIMETABLE, VIEW_END, VIEW_START, fmtTime } from '../engine/config';
 import type { Mode } from '../engine/types';
 import { MODE_COLOR } from '../lib/color';
+import { pointerX } from '../lib/fit';
 import { runOf, type Source } from '../lib/frame';
 import { DAY, SPEEDS, at, useSim } from '../state/sim';
 
@@ -115,8 +116,7 @@ export default function Timeline({ baseline = 'fixed' }: { baseline?: Source }) 
   }, [x]);
 
   const seek = (e: React.PointerEvent<SVGSVGElement>) => {
-    const box = e.currentTarget.getBoundingClientRect();
-    const px = e.clientX - box.left;
+    const px = pointerX(e.currentTarget, e.clientX, width);
     const span = width - PAD_L - PAD_R;
     const t = VIEW_START + ((px - PAD_L) / span) * (VIEW_END - VIEW_START);
     useSim.getState().set(t);

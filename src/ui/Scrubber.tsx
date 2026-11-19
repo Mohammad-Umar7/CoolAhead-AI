@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { VIEW_END, VIEW_START, fmtTime } from '../engine/config';
+import { pointerX } from '../lib/fit';
 import { DAY, SPEEDS, useSim } from '../state/sim';
 
 const pos = (t: number) => ((t - VIEW_START) / (VIEW_END - VIEW_START)) * 100;
@@ -28,8 +29,8 @@ export default function Scrubber() {
   }, []);
 
   const seek = (clientX: number) => {
-    const box = track.current!.getBoundingClientRect();
-    const f = Math.min(1, Math.max(0, (clientX - box.left) / box.width));
+    const width = track.current!.offsetWidth;
+    const f = Math.min(1, Math.max(0, pointerX(track.current!, clientX, width) / width));
     useSim.getState().set(VIEW_START + f * (VIEW_END - VIEW_START));
   };
 

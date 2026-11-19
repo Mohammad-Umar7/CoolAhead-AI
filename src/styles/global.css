@@ -143,18 +143,18 @@ a {
 }
 
 .backdrop::before {
-  width: 62vw;
-  height: 62vw;
-  right: -24vw;
-  top: -34vw;
+  width: 900px;
+  height: 900px;
+  right: -350px;
+  top: -490px;
   background: radial-gradient(circle, rgba(243, 208, 4, 0.34) 0%, rgba(232, 179, 0, 0.16) 38%, rgba(215, 129, 1, 0) 70%);
 }
 
 .backdrop::after {
-  width: 54vw;
-  height: 54vw;
-  left: -20vw;
-  bottom: -30vw;
+  width: 780px;
+  height: 780px;
+  left: -290px;
+  bottom: -430px;
   background: radial-gradient(circle, rgba(58, 108, 196, 0.6) 0%, rgba(42, 60, 100, 0) 68%);
 }
 

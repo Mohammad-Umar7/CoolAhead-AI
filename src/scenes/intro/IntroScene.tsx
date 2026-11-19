@@ -1,6 +1,7 @@
 import { use, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { uiScale } from '../../lib/fit';
 import type { AnchorEls } from '../Anchors';
 import City from './City';
 import Country from './Country';
@@ -212,7 +213,9 @@ export default function IntroScene({ state, labels, hud }: Props) {
     cam.far = alt * 80 + 6000;
     // once the camera has arrived the building is slid right, clear of the title
     const slide = THREE.MathUtils.smoothstep(dive, 0.82, 1) * (1 - push);
-    if (size.width > 8) cam.setViewOffset(size.width, size.height, -slide * size.width * (size.width > 900 ? 0.2 : 0), -slide * size.height * 0.02, size.width, size.height);
+    // the canvas is measured in screen pixels; the labels and the scale bar live in the scaled layout
+    const k = uiScale();
+    if (size.width > 8) cam.setViewOffset(size.width, size.height, -slide * size.width * 0.2, -slide * size.height * 0.02, size.width, size.height);
     cam.updateProjectionMatrix();
     cam.updateMatrixWorld();
 
@@ -224,7 +227,7 @@ export default function IntroScene({ state, labels, hud }: Props) {
         const el = els[a.key];
         if (!el) continue;
         tmp.copy(a.pos).project(cam);
-        el.style.transform = `translate3d(${((tmp.x * 0.5 + 0.5) * size.width).toFixed(1)}px, ${((-tmp.y * 0.5 + 0.5) * size.height).toFixed(1)}px, 0)`;
+        el.style.transform = `translate3d(${(((tmp.x * 0.5 + 0.5) * size.width) / k).toFixed(1)}px, ${(((-tmp.y * 0.5 + 0.5) * size.height) / k).toFixed(1)}px, 0)`;
         let o = 0;
         if (a.key === 'uae') o = s.detail * smoothstep(alt, 220000, 520000);
         else if (a.key === 'campus') o = (t >= BEAT.ping ? 1 : 0) * smoothstep(alt, 1800, 6000);
@@ -246,7 +249,7 @@ export default function IntroScene({ state, labels, hud }: Props) {
       if (h.scale) {
         // ground width of the view, to label the scale bar
         const width = 2 * alt * Math.tan((cam.fov * RAD) / 2) * cam.aspect;
-        const bar = width * (120 / size.width);
+        const bar = width * ((120 * k) / size.width);
         h.scale.textContent = bar >= 1000 ? `${(bar / 1000).toFixed(bar >= 10000 ? 0 : 1)} km` : `${bar.toFixed(0)} m`;
       }
     }
