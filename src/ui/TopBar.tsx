@@ -12,8 +12,8 @@ const LINKS = [
 export function Mark({ size = 22 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <path d="M5 16h13M13 9.5l6.5 6.5-6.5 6.5" fill="none" stroke="var(--ice)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M25 8v16" stroke="var(--heat)" strokeWidth="2.6" strokeLinecap="round" />
+      <path d="M5 16h13M13 9.5l6.5 6.5-6.5 6.5" fill="none" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M25 8v16" stroke="var(--gold)" strokeWidth="2.8" strokeLinecap="round" />
     </svg>
   );
 }
@@ -37,7 +37,7 @@ export default function TopBar() {
       </nav>
       <div className="topbar-right">
         <span className="chip" title="Software-only proof of concept. No building system is controlled.">
-          <span className="dot" style={{ color: 'var(--amber)' }} />
+          <span className="dot" style={{ color: 'var(--gold)' }} />
           Simulated day
         </span>
         <span className="clock mono">{fmtTime(minute)}</span>

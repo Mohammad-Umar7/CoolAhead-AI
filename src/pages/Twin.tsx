@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import { COMFORT_HI, COMFORT_LO } from '../engine/config';
 import { TEMP_RANGE, cssRamp } from '../lib/color';
+import { MODEL } from '../lib/theme';
 import { DAY, at, useMinute } from '../state/sim';
 import type { AnchorEls } from '../scenes/Anchors';
 import Stage, { Framing } from '../scenes/Stage';
@@ -20,11 +21,11 @@ const VIEWS: { id: FloorView; label: string; hint: string }[] = [
 export function FloorLights() {
   return (
     <>
-      <hemisphereLight args={['#d6edf9', '#0d141b', 1.3]} />
-      <directionalLight position={[-16, 26, -12]} intensity={2.4} color="#f0f8ff" />
-      <directionalLight position={[-8, 14, 30]} intensity={1.5} color="#bfe6ff" />
-      <directionalLight position={[26, 10, 8]} intensity={0.6} color="#8fd8ff" />
-      <fog attach="fog" args={['#04070a', 60, 150]} />
+      <hemisphereLight args={['#eaf2ff', '#16305c', 1.5]} />
+      <directionalLight position={[-16, 26, -12]} intensity={2.3} color="#ffffff" />
+      <directionalLight position={[-8, 14, 30]} intensity={1.4} color="#d6e6ff" />
+      <directionalLight position={[26, 10, 8]} intensity={0.7} color="#ffe9a8" />
+      <fog attach="fog" args={[MODEL.fog, 70, 170]} />
     </>
   );
 }
@@ -73,11 +74,11 @@ function Legend({ view }: { view: FloorView }) {
         <span className="legend-band" style={{ left: pos(COMFORT_LO), width: `calc(${pos(COMFORT_HI)} - ${pos(COMFORT_LO)})` }} />
       </div>
       <div className="legend-ends mono">
-        <span>{a} °C</span>
+        <span>{a}°</span>
         <span className="legend-mid" style={{ left: pos((COMFORT_LO + COMFORT_HI) / 2) }}>
-          comfort {COMFORT_LO} to {COMFORT_HI}
+          comfort
         </span>
-        <span>{b} °C</span>
+        <span>{b}°</span>
       </div>
     </div>
   );
@@ -92,7 +93,7 @@ export default function Twin() {
         <FloorLights />
         <FloorScene source="cool" view={view} tags={tags} />
         <OrbitControls makeDefault enablePan={false} enableDamping dampingFactor={0.08} minDistance={26} maxDistance={110} minPolarAngle={0.2} maxPolarAngle={1.32} />
-        <Framing span={38} from={[-0.3, 0.74, 0.92]} target={[0, 0.3, 0.6]} inset={{ left: 380, bottom: 200, top: 40 }} />
+        <Framing span={38} from={[-0.3, 0.74, 0.92]} target={[0, 0.3, 0.6]} inset={{ left: 386, bottom: 214, top: 112 }} />
       </Stage>
       <Tags els={tags} source="cool" ducts={view === 'xray'} />
 
@@ -109,7 +110,7 @@ export default function Twin() {
 
       <aside className="twin-side">
         <DecisionCard />
-        <div className="twin-legend">
+        <div className="twin-legend panel">
           <Legend view={view} />
           <Weather />
         </div>

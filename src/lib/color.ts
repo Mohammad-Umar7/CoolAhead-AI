@@ -22,8 +22,8 @@ const TEMP: Stop[] = [
 
 /** People density on the floor: nothing, then cold to white-hot. */
 const HEAT: Stop[] = [
-  [0, hex('#061019')],
-  [0.12, hex('#0f3b7a')],
+  [0, hex('#12264f')],
+  [0.12, hex('#1c4f9c')],
   [0.3, hex('#1489b8')],
   [0.48, hex('#22c7a9')],
   [0.64, hex('#d9e34a')],
@@ -95,11 +95,11 @@ export const cssRamp = (kind: 'temp' | 'heat', dir = 'to right') => {
 };
 
 export const MODE_COLOR: Record<Mode, string> = {
-  OFF: '#3b4955',
-  STANDBY: '#56687a',
-  REDUCED: '#63efb3',
-  NORMAL: '#7fe3ff',
-  PRECOOL: '#b79bff',
+  OFF: '#6b7fa6',
+  STANDBY: '#8a9cc0',
+  REDUCED: '#6ff0b8',
+  NORMAL: '#8fe6ff',
+  PRECOOL: '#c8adff',
 };
 
 export const MODE_NAME: Record<Mode, string> = {

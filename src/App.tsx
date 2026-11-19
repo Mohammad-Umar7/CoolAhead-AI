@@ -13,8 +13,8 @@ export default function App() {
   const intro = pathname === '/';
   return (
     <div className="app">
-      {!intro && <TopBar />}
-      <main className={intro ? 'stage stage-full' : 'stage'}>
+      <div className="backdrop" />
+      <main className="stage">
         <Suspense fallback={<div className="stage-wait label">Loading</div>}>
           <Routes>
             <Route path="/" element={<Intro />} />
@@ -25,6 +25,7 @@ export default function App() {
           </Routes>
         </Suspense>
       </main>
+      {!intro && <TopBar />}
     </div>
   );
 }
