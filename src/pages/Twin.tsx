@@ -94,7 +94,7 @@ export default function Twin() {
         <OrbitControls makeDefault enablePan={false} enableDamping dampingFactor={0.08} minDistance={26} maxDistance={110} minPolarAngle={0.2} maxPolarAngle={1.32} />
         <Framing span={38} from={[-0.3, 0.74, 0.92]} target={[0, 0.3, 0.6]} inset={{ left: 380, bottom: 200, top: 40 }} />
       </Stage>
-      <Tags els={tags} source="cool" />
+      <Tags els={tags} source="cool" ducts={view === 'xray'} />
 
       <div className="twin-top">
         <div className="seg" role="group" aria-label="View">

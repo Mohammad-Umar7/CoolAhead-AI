@@ -1,4 +1,4 @@
-import { ROOMS, ZONE } from '../engine/config';
+import { AHU, PHYS, ROOMS, ZONE } from '../engine/config';
 import { tempCss } from '../lib/color';
 import { runOf, type Source } from '../lib/frame';
 import type { AnchorEls } from '../scenes/Anchors';
@@ -60,8 +60,30 @@ function AhuTag({ source }: { source: Source }) {
   );
 }
 
+/** What the fixed duct split delivers to a room right now, wanted or not. */
+function DuctTag({ index, source }: { index: number; source: Source }) {
+  const minute = useMinute();
+  const t = minute + 0.5;
+  const run = runOf(source);
+  const fan = stepAt(run.flow, t);
+  const kw = (fan * AHU.mDesign * ROOMS[index].share * PHYS.cp * Math.max(0, at(run.ta[index], t) - at(run.tSupply, t))) / 1000;
+  const empty = at(DAY.occ[index], t) < 1;
+  const wasted = empty && kw > 0.3;
+  return (
+    <div className={`tag duct-tag${wasted ? ' wasted' : ''}`}>
+      <span className="duct-share num">{Math.round(ROOMS[index].share * 100)}%</span>
+      <span className="tag-row mono">
+        of the air
+        <br />
+        {fan > 0 ? `${kw.toFixed(1)} kW cooling` : 'fan off'}
+        {wasted && <em>room is empty</em>}
+      </span>
+    </div>
+  );
+}
+
 /** Labels pinned to the 3D model. The scene moves the wrappers; this fills them. */
-export default function Tags({ els, source = 'cool', ahu = true }: { els: React.RefObject<AnchorEls>; source?: Source; ahu?: boolean }) {
+export default function Tags({ els, source = 'cool', ahu = true, ducts = false }: { els: React.RefObject<AnchorEls>; source?: Source; ahu?: boolean; ducts?: boolean }) {
   const pin = (key: string) => (el: HTMLDivElement | null) => {
     els.current[key] = el;
   };
@@ -77,6 +99,11 @@ export default function Tags({ els, source = 'cool', ahu = true }: { els: React.
           <AhuTag source={source} />
         </div>
       )}
+      {ROOMS.map((_, i) => (
+        <div key={`d${i}`} className={`tag-pin fade${ducts ? ' on' : ''}`} ref={pin(`duct${i}`)}>
+          <DuctTag index={i} source={source} />
+        </div>
+      ))}
     </div>
   );
 }

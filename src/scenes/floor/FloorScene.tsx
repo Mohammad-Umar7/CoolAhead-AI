@@ -9,13 +9,15 @@ import Air from './Air';
 import People from './People';
 import Shell from './Shell';
 import { AirVolumes, HeatFloors } from './Thermal';
-import { AHU_POS, CENTER, PLAN } from './layout';
+import { AHU_POS, CENTER, DUCT_Y, PLAN, TRUNK_Z } from './layout';
 
 export type FloorView = 'live' | 'heat' | 'thermal' | 'xray';
 
 /** Points labels can be pinned to: each room, the air handler, the facade. */
 export const FLOOR_ANCHORS: AnchorPoint[] = [
   ...PLAN.map((p) => ({ key: `room${p.index}`, position: [p.cx, 3.3, p.z0 + 0.2] as [number, number, number] })),
+  // where each room's branch leaves the trunk: the fixed split of the air
+  ...PLAN.map((p) => ({ key: `duct${p.index}`, position: [p.cx, DUCT_Y + 0.3, TRUNK_Z] as [number, number, number] })),
   { key: 'ahu', position: [AHU_POS.x - 2.2, 1.9, AHU_POS.z - 3.4] },
 ];
 
@@ -98,7 +100,7 @@ export default function FloorScene({ source = 'cool', view = 'live', tags }: Pro
   }, -1);
 
   const xray = view === 'xray' ? 1 : 0;
-  const volume = view === 'thermal' ? 1 : view === 'live' ? 0.45 : view === 'xray' ? 0.3 : 0.05;
+  const volume = view === 'thermal' ? 0.85 : view === 'live' ? 0.42 : view === 'xray' ? 0.14 : 0.05;
   const heat = view === 'heat' ? 1 : 0;
 
   return (

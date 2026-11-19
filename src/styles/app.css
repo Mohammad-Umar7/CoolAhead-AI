@@ -806,3 +806,63 @@
   height: 100%;
   background: linear-gradient(90deg, var(--heat), var(--amber));
 }
+
+/* ---------- x-ray: what each duct branch carries ---------- */
+
+.tag-pin.fade {
+  opacity: 0;
+  transition: opacity 0.4s var(--ease);
+}
+
+.tag-pin.fade.on {
+  opacity: 1;
+}
+
+.tag {
+  background: linear-gradient(90deg, rgba(4, 7, 10, 0.66), rgba(4, 7, 10, 0.28) 70%, rgba(4, 7, 10, 0));
+  padding-right: 14px;
+  padding-top: 3px;
+}
+
+.duct-tag {
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 8px;
+  border-left-color: rgba(127, 227, 255, 0.6);
+}
+
+.duct-tag::after {
+  background: var(--ice);
+  box-shadow: 0 0 8px var(--ice);
+}
+
+.duct-share {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ice);
+}
+
+.duct-tag .tag-row {
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--tx-1);
+}
+
+.duct-tag .tag-row em {
+  display: block;
+  font-style: normal;
+  color: var(--amber);
+}
+
+.duct-tag.wasted {
+  border-left-color: var(--amber);
+}
+
+.duct-tag.wasted .duct-share {
+  color: var(--amber);
+}
+
+.duct-tag.wasted::after {
+  background: var(--amber);
+  box-shadow: 0 0 8px var(--amber);
+}

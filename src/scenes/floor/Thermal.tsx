@@ -72,7 +72,7 @@ export function AirVolumes({ frame, strength = 0.5 }: { frame: React.RefObject<F
       shown.current[i] = damp(shown.current[i], f.temp[i], 6, dt);
       const u = mats[i].uniforms;
       tempColor(shown.current[i], u.uColor.value);
-      u.uOpacity.value = 0.34 * opacity.current;
+      u.uOpacity.value = 0.32 * opacity.current;
       u.uTime.value = state.clock.elapsedTime;
     }
   });
