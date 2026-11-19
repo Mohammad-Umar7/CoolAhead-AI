@@ -154,6 +154,7 @@ export function simulateDay(seed = 7): DayResult {
 
       decisions.push({
         t,
+        temps: s.ta.slice(),
         vision: { count, conf: p.conf.slice(), online },
         forecast: {
           occ: sample(fc.mean),

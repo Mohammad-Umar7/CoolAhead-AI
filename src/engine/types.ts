@@ -95,6 +95,8 @@ export interface SafetyCheck {
 
 export interface Decision {
   t: number;
+  /** room air temperatures when the decision was taken */
+  temps: number[];
   vision: {
     count: (number | null)[];
     conf: number[];
