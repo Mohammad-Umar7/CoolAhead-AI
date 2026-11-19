@@ -3,40 +3,66 @@
 @import '@fontsource-variable/geist-mono/wght.css';
 
 :root {
-  /* ink: the room the instruments sit in */
-  --ink-0: #04070a;
-  --ink-1: #070c11;
-  --ink-2: #0b1218;
-  --ink-3: #111a22;
-  --ink-4: #18232d;
+  /* Liwa University navy, from deepest shadow to the lit edge of the brand field */
+  --navy-0: #081329;
+  --navy-1: #0c1c3d;
+  --navy-2: #12264f;
+  --navy-3: #1b3460;
+  --navy-4: #27447c;
+  --navy-5: #3a5a98;
 
-  --line: rgba(196, 224, 240, 0.085);
-  --line-2: rgba(196, 224, 240, 0.16);
-  --line-3: rgba(196, 224, 240, 0.28);
+  /* Liwa gold: the flat yellow of the field, and the warmer tones in its fold */
+  --gold: #f3d004;
+  --gold-2: #e8b300;
+  --gold-3: #d78101;
+  --gold-dim: rgba(243, 208, 4, 0.16);
+  --gold-line: rgba(243, 208, 4, 0.5);
 
-  --tx-0: #eef4f7;
-  --tx-1: #aebcc7;
-  --tx-2: #70808d;
-  --tx-3: #47545f;
+  /* the names the components were written against */
+  --ink-0: var(--navy-0);
+  --ink-1: var(--navy-1);
+  --ink-2: var(--navy-2);
+  --ink-3: var(--navy-3);
+  --ink-4: var(--navy-4);
+  --accent: var(--gold);
 
-  /* the thermal pair everything is told with */
-  --ice: #7fe3ff;
-  --ice-deep: #1f9fdc;
-  --ice-dim: rgba(127, 227, 255, 0.14);
-  --heat: #ff7a33;
-  --hot: #ff4530;
-  --heat-dim: rgba(255, 122, 51, 0.14);
-  --amber: #ffc24d;
-  --mint: #63efb3;
-  --mint-dim: rgba(99, 239, 179, 0.13);
-  --gold: #d8b662;
+  --line: rgba(255, 255, 255, 0.11);
+  --line-2: rgba(255, 255, 255, 0.2);
+  --line-3: rgba(255, 255, 255, 0.36);
+
+  --tx-0: #f6f9ff;
+  --tx-1: #c2cee4;
+  --tx-2: #8fa2c4;
+  --tx-3: #6076a0;
+
+  /* what the data is told with: cool air, comfort, heat */
+  --ice: #8fe6ff;
+  --ice-deep: #2fa9e6;
+  --ice-dim: rgba(143, 230, 255, 0.16);
+  --mint: #6ff0b8;
+  --mint-dim: rgba(111, 240, 184, 0.14);
+  --heat: #ff8552;
+  --hot: #ff4d5e;
+  --heat-dim: rgba(255, 133, 82, 0.16);
+  --amber: #ffa63d;
+
+  /* glass */
+  --glass: linear-gradient(142deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.055) 42%, rgba(255, 255, 255, 0.09) 100%);
+  --glass-strong: linear-gradient(142deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.09) 46%, rgba(255, 255, 255, 0.13) 100%);
+  --glass-tint: rgba(12, 28, 61, 0.34);
+  --glass-edge: rgba(255, 255, 255, 0.24);
+  --glass-shadow: 0 22px 60px -24px rgba(2, 8, 24, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.32), inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+  --blur: blur(22px) saturate(155%);
+  --r-lg: 20px;
+  --r-md: 14px;
+  --r-sm: 10px;
 
   --display: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
   --ui: 'Geist Variable', 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SF Mono', Consolas, monospace;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --bar-h: 52px;
+  --bar-h: 58px;
 
   color-scheme: dark;
 }
@@ -55,7 +81,7 @@ body,
 
 body {
   margin: 0;
-  background: var(--ink-0);
+  background: var(--navy-2);
   color: var(--tx-0);
   font: 14px/1.5 var(--ui);
   font-feature-settings: 'ss01', 'cv11';
@@ -86,12 +112,50 @@ a {
 }
 
 :focus-visible {
-  outline: 1px solid var(--ice);
+  outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
 
 ::selection {
-  background: rgba(127, 227, 255, 0.28);
+  background: rgba(243, 208, 4, 0.34);
+}
+
+/* ---------- the brand field every page sits on ---------- */
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #24427c 0%, rgba(27, 52, 96, 0) 62%),
+    linear-gradient(180deg, #1b3460 0%, #12264f 55%, #0c1c3d 100%);
+}
+
+/* the gold fold of the Liwa banner, as soft light behind the glass */
+.backdrop::before,
+.backdrop::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+
+.backdrop::before {
+  width: 62vw;
+  height: 62vw;
+  right: -24vw;
+  top: -34vw;
+  background: radial-gradient(circle, rgba(243, 208, 4, 0.34) 0%, rgba(232, 179, 0, 0.16) 38%, rgba(215, 129, 1, 0) 70%);
+}
+
+.backdrop::after {
+  width: 54vw;
+  height: 54vw;
+  left: -20vw;
+  bottom: -30vw;
+  background: radial-gradient(circle, rgba(58, 108, 196, 0.6) 0%, rgba(42, 60, 100, 0) 68%);
 }
 
 /* ---------- type roles ---------- */
@@ -123,14 +187,16 @@ a {
   letter-spacing: -0.015em;
 }
 
-/* ---------- surfaces ---------- */
+/* ---------- glass ---------- */
 
-.panel {
-  background: linear-gradient(180deg, rgba(11, 18, 24, 0.86), rgba(7, 12, 17, 0.9));
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  backdrop-filter: blur(14px) saturate(120%);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
+.panel,
+.glass {
+  background: var(--glass), var(--glass-tint);
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--r-lg);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  box-shadow: var(--glass-shadow);
 }
 
 .rule {
@@ -140,11 +206,10 @@ a {
   margin: 0;
 }
 
-/* thin scrollbars inside panels */
 .scroll {
   overflow: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--ink-4) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 
 /* ---------- small parts ---------- */
@@ -152,15 +217,18 @@ a {
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 20px;
-  padding: 0 7px;
-  border: 1px solid var(--line-2);
-  border-radius: 3px;
+  gap: 7px;
+  height: 26px;
+  padding: 0 11px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   font: 500 10px/1 var(--mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--tx-1);
+  color: var(--tx-0);
   white-space: nowrap;
 }
 
@@ -174,21 +242,24 @@ a {
 
 .seg {
   display: inline-flex;
-  padding: 2px;
-  border: 1px solid var(--line-2);
-  border-radius: 5px;
-  background: rgba(4, 7, 10, 0.6);
+  padding: 3px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 999px;
+  background: var(--glass), var(--glass-tint);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  box-shadow: var(--glass-shadow);
 }
 
 .seg button {
-  height: 24px;
-  padding: 0 10px;
-  border-radius: 3px;
+  height: 28px;
+  padding: 0 14px;
+  border-radius: 999px;
   font: 500 11px/1 var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--tx-2);
-  transition: color 0.2s, background 0.2s;
+  color: var(--tx-1);
+  transition: color 0.2s, background 0.25s var(--ease), box-shadow 0.25s;
 }
 
 .seg button:hover {
@@ -196,9 +267,10 @@ a {
 }
 
 .seg button[aria-pressed='true'] {
-  background: var(--ink-4);
-  color: var(--tx-0);
-  box-shadow: inset 0 0 0 1px var(--line-2);
+  background: var(--gold);
+  color: var(--navy-1);
+  font-weight: 600;
+  box-shadow: 0 4px 18px -4px rgba(243, 208, 4, 0.7);
 }
 
 @media (prefers-reduced-motion: reduce) {
