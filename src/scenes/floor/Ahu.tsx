@@ -5,7 +5,7 @@ import { Edges } from '@react-three/drei';
 import { damp, type Frame } from '../../lib/frame';
 import { AHU_POS } from './layout';
 
-const COIL_OFF = new THREE.Color('#1c2a35');
+const COIL_OFF = new THREE.Color('#2c4b84');
 const COIL_ON = new THREE.Color('#58d6ff');
 const WARM = new THREE.Color('#ff8a3d');
 const BLADES = 9;
@@ -45,20 +45,20 @@ export default function Ahu({ frame }: { frame: React.RefObject<Frame> }) {
       {/* plinth */}
       <mesh position={[0, 0.06, 0]}>
         <boxGeometry args={[w + 0.3, 0.12, d + 0.3]} />
-        <meshStandardMaterial color="#0d151c" roughness={0.8} />
+        <meshStandardMaterial color="#132a56" roughness={0.8} />
       </mesh>
 
       {/* casing, glazed so the inside can be read */}
       <mesh position={[0, h / 2 + 0.12, 0]}>
         <boxGeometry args={[w, h, d]} />
-        <meshPhysicalMaterial color="#9fd3e6" transparent opacity={0.06} roughness={0.15} depthWrite={false} side={THREE.DoubleSide} />
-        <Edges color="#7fb4c8" threshold={20} />
+        <meshPhysicalMaterial color="#e2f0ff" transparent opacity={0.1} roughness={0.15} depthWrite={false} side={THREE.DoubleSide} />
+        <Edges color="#ffffff" threshold={20} />
       </mesh>
       {[-w / 2 + 0.95, -w / 2 + 1.65].map((px, i) => (
         <mesh key={i} position={[px, h / 2 + 0.12, 0]}>
           <boxGeometry args={[0.02, h, d]} />
-          <meshBasicMaterial color="#7fb4c8" transparent opacity={0.05} depthWrite={false} />
-          <Edges color="#3f5a69" threshold={20} />
+          <meshBasicMaterial color="#e2f0ff" transparent opacity={0.06} depthWrite={false} />
+          <Edges color="#8fa9d8" threshold={20} />
         </mesh>
       ))}
 
@@ -76,7 +76,7 @@ export default function Ahu({ frame }: { frame: React.RefObject<Frame> }) {
       {/* filter */}
       <mesh position={[-w / 2 + 0.95, h / 2 + 0.12, 0]}>
         <boxGeometry args={[0.07, h - 0.24, d - 0.24]} />
-        <meshStandardMaterial color="#27333d" roughness={0.9} transparent opacity={0.75} />
+        <meshStandardMaterial color="#3a5a98" roughness={0.9} transparent opacity={0.7} />
       </mesh>
 
       {/* chilled-water coil: a bank of fins */}
@@ -95,11 +95,11 @@ export default function Ahu({ frame }: { frame: React.RefObject<Frame> }) {
       </mesh>
       <mesh position={[-w / 2 + 1.2, h + 0.32, d / 2 - 0.25]} rotation-x={Math.PI / 2}>
         <cylinderGeometry args={[0.055, 0.055, 0.9, 12]} />
-        <meshStandardMaterial color="#5f7d8f" roughness={0.4} metalness={0.5} />
+        <meshStandardMaterial color="#8fa9d8" roughness={0.4} metalness={0.5} />
       </mesh>
       <mesh ref={valve} position={[-w / 2 + 1.38, h + 0.32, d / 2 + 0.26]}>
         <boxGeometry args={[0.26, 0.08, 0.08]} />
-        <meshStandardMaterial color="#ffc24d" emissive="#ffc24d" emissiveIntensity={0.6} />
+        <meshStandardMaterial color="#f3d004" emissive="#f3d004" emissiveIntensity={0.7} />
       </mesh>
 
       {/* supply fan */}

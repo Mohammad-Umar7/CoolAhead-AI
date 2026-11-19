@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Edges, Grid } from '@react-three/drei';
 import { damp, type Frame } from '../../lib/frame';
+import { MODEL } from '../../lib/theme';
 import { BOUNDS, CORRIDOR, PLAN, PLANT, ROOMS_X1, WALL, WALL_H } from './layout';
 
 type Box = { x0: number; x1: number; z0: number; z1: number; h: number };
@@ -33,9 +34,9 @@ function gridTexture() {
   const c = document.createElement('canvas');
   c.width = c.height = 256;
   const g = c.getContext('2d')!;
-  g.fillStyle = '#111b24';
+  g.fillStyle = MODEL.floor;
   g.fillRect(0, 0, 256, 256);
-  g.strokeStyle = 'rgba(190, 220, 240, 0.085)';
+  g.strokeStyle = MODEL.floorLine;
   g.lineWidth = 2;
   g.strokeRect(0, 0, 256, 256);
   const t = new THREE.CanvasTexture(c);
@@ -139,20 +140,20 @@ export default function Shell({ ghost = 0, frame }: { ghost?: number; frame?: Re
         sectionSize={5}
         cellThickness={0.5}
         sectionThickness={0.9}
-        cellColor="#121c25"
-        sectionColor="#1a2935"
+        cellColor={MODEL.grid}
+        sectionColor={MODEL.gridSection}
         fadeDistance={95}
         fadeStrength={1.6}
       />
       <lineSegments geometry={storey} position={[0, -0.3, 0]}>
-        <lineBasicMaterial color="#5f7a8c" transparent opacity={0.22} />
+        <lineBasicMaterial color={MODEL.storey} transparent opacity={0.3} />
       </lineSegments>
 
       {/* slab of the zone */}
       <mesh position={[(BOUNDS.x0 + BOUNDS.x1) / 2 - WALL / 2, -0.16, (BOUNDS.z0 + BOUNDS.z1) / 2 - WALL / 2]}>
         <boxGeometry args={[BOUNDS.x1 - BOUNDS.x0 + WALL * 3, 0.3, BOUNDS.z1 - BOUNDS.z0 + WALL * 3]} />
-        <meshStandardMaterial color="#080d12" roughness={0.95} />
-        <Edges color="#3a5262" threshold={30} />
+        <meshStandardMaterial color={MODEL.slab} roughness={0.95} />
+        <Edges color={MODEL.slabEdge} threshold={30} />
       </mesh>
 
       {PLAN.map((p, i) => (
@@ -163,18 +164,18 @@ export default function Shell({ ghost = 0, frame }: { ghost?: number; frame?: Re
       ))}
       <mesh rotation-x={-Math.PI / 2} position={[(PLANT.x0 + ROOMS_X1) / 2, 0, (CORRIDOR.z0 + CORRIDOR.z1) / 2]}>
         <planeGeometry args={[ROOMS_X1 - PLANT.x0, CORRIDOR.z1 - CORRIDOR.z0]} />
-        <meshStandardMaterial color="#101a23" roughness={0.9} />
+        <meshStandardMaterial color={MODEL.corridor} roughness={0.9} />
       </mesh>
       <mesh rotation-x={-Math.PI / 2} position={[(PLANT.x0 + PLANT.x1) / 2, 0, D / 2]}>
         <planeGeometry args={[PLANT.x1 - PLANT.x0, D]} />
-        <meshStandardMaterial color="#101a23" roughness={0.9} />
+        <meshStandardMaterial color={MODEL.corridor} roughness={0.9} />
       </mesh>
 
       {walls.map((b, i) => (
         <mesh key={i} position={[(b.x0 + b.x1) / 2, b.h / 2, (b.z0 + b.z1) / 2]}>
           <boxGeometry args={[b.x1 - b.x0, b.h, b.z1 - b.z0]} />
-          <meshStandardMaterial color="#1f2e3b" roughness={0.65} transparent={ghost > 0} opacity={wallOpacity} depthWrite={ghost === 0} />
-          <Edges color="#6f8a9c" threshold={20} />
+          <meshStandardMaterial color={MODEL.wall} roughness={0.6} transparent={ghost > 0} opacity={wallOpacity} depthWrite={ghost === 0} />
+          <Edges color={MODEL.wallEdge} threshold={20} />
         </mesh>
       ))}
 
@@ -186,18 +187,18 @@ export default function Shell({ ghost = 0, frame }: { ghost?: number; frame?: Re
           <group key={p.index}>
             <mesh position={[p.cx, 0.15, -WALL / 2]}>
               <boxGeometry args={[w, 0.3, WALL]} />
-              <meshStandardMaterial color="#17232e" roughness={0.7} />
-              <Edges color="#6f8a9c" threshold={20} />
+              <meshStandardMaterial color={MODEL.wall} roughness={0.6} />
+              <Edges color={MODEL.wallEdge} threshold={20} />
             </mesh>
             <mesh position={[p.cx, 0.3 + GLASS_H / 2, -WALL / 2]}>
               <boxGeometry args={[w, GLASS_H, 0.04]} />
-              <meshPhysicalMaterial color="#9fe4f5" transparent opacity={0.055} roughness={0.05} side={THREE.DoubleSide} depthWrite={false} />
-              <Edges color="#5c8496" threshold={20} />
+              <meshPhysicalMaterial color={MODEL.glass} transparent opacity={0.09} roughness={0.05} side={THREE.DoubleSide} depthWrite={false} />
+              <Edges color={MODEL.glassEdge} threshold={20} />
             </mesh>
             {Array.from({ length: bays - 1 }, (_, k) => (
               <mesh key={k} position={[p.x0 + ((k + 1) * w) / bays, 0.3 + GLASS_H / 2, -WALL / 2]}>
                 <boxGeometry args={[0.045, GLASS_H, 0.08]} />
-                <meshStandardMaterial color="#31485a" roughness={0.5} metalness={0.4} />
+                <meshStandardMaterial color={MODEL.mullion} roughness={0.5} metalness={0.4} />
               </mesh>
             ))}
           </group>
@@ -214,8 +215,8 @@ export default function Shell({ ghost = 0, frame }: { ghost?: number; frame?: Re
         p.desks.map((d, k) => (
           <mesh key={`${p.index}-${k}`} position={[d.x, 0.36, d.z]}>
             <boxGeometry args={[0.34, 0.72, d.len]} />
-            <meshStandardMaterial color="#182530" roughness={0.7} />
-            <Edges color="#3f596b" threshold={20} />
+            <meshStandardMaterial color={MODEL.desk} roughness={0.7} />
+            <Edges color={MODEL.deskEdge} threshold={20} />
           </mesh>
         )),
       )}
@@ -224,7 +225,7 @@ export default function Shell({ ghost = 0, frame }: { ghost?: number; frame?: Re
       {PLAN.map((p) => (
         <mesh key={p.index} position={[p.x0 + 0.03, 0.78, p.cz - 0.6]}>
           <boxGeometry args={[0.04, 0.62, 3.4]} />
-          <meshStandardMaterial color="#c8d5dd" emissive="#c8d5dd" emissiveIntensity={0.16} roughness={0.4} />
+          <meshStandardMaterial color={MODEL.board} emissive={MODEL.board} emissiveIntensity={0.2} roughness={0.4} />
         </mesh>
       ))}
     </group>

@@ -3,12 +3,13 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Edges } from '@react-three/drei';
 import { damp, type Frame } from '../../lib/frame';
+import { MODEL } from '../../lib/theme';
 import { AHU_POS, DUCT_Y, PLAN, RISER, ROUTES, TRUNK_Z, along } from './layout';
 
 const COUNT = 1700;
 const PLUME = 5.5;
 const COLD = new THREE.Color('#8fe9ff');
-const NEUTRAL = new THREE.Color('#a8b6c0');
+const NEUTRAL = new THREE.Color('#c9d6ee');
 
 const vertex = /* glsl */ `
   attribute float aAlpha;
@@ -38,11 +39,9 @@ const fragment = /* glsl */ `
 /** The supply ductwork: one riser, one trunk, a branch and a diffuser per outlet. */
 function Ducts({ emphasis }: { emphasis: number }) {
   const lastX = ROUTES[ROUTES.length - 1].pts[3][0];
-  const opacity = 0.07 + 0.1 * emphasis;
-  const mat = (
-    <meshPhysicalMaterial color="#9fdcf0" transparent opacity={opacity} roughness={0.2} metalness={0.1} depthWrite={false} side={THREE.DoubleSide} />
-  );
-  const edge = emphasis > 0.5 ? '#8fd4ea' : '#52707f';
+  const opacity = 0.1 + 0.12 * emphasis;
+  const mat = <meshPhysicalMaterial color={MODEL.duct} transparent opacity={opacity} roughness={0.2} metalness={0.1} depthWrite={false} side={THREE.DoubleSide} />;
+  const edge = emphasis > 0.5 ? MODEL.ductEdgeLit : MODEL.ductEdge;
   return (
     <group>
       <mesh position={[RISER.x, (AHU_POS.h + DUCT_Y) / 2, RISER.z]}>
@@ -71,8 +70,8 @@ function Ducts({ emphasis }: { emphasis: number }) {
             </mesh>
             <mesh position={[x, DUCT_Y - 0.3, z]}>
               <boxGeometry args={[0.9, 0.08, 0.9]} />
-              <meshStandardMaterial color="#1b2a36" roughness={0.5} metalness={0.4} />
-              <Edges color="#8fd4ea" threshold={20} />
+              <meshStandardMaterial color="#3a5a98" roughness={0.5} metalness={0.4} />
+              <Edges color="#ffffff" threshold={20} />
             </mesh>
           </group>
         );

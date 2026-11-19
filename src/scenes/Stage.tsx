@@ -3,12 +3,15 @@ import { Canvas, useThree } from '@react-three/fiber';
 import { Bloom, EffectComposer, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing';
 import { ToneMappingMode } from 'postprocessing';
 import * as THREE from 'three';
+import { brandBackground } from '../lib/theme';
 
 interface Props {
   children: ReactNode;
   camera?: { position: [number, number, number]; fov?: number; near?: number; far?: number };
   bloom?: number;
   className?: string;
+  /** a flat background colour instead of the brand field */
+  plain?: string;
 }
 
 interface FrameProps {
@@ -62,7 +65,7 @@ export function Framing({ span, inset = {}, from, target = [0, 0, 0] }: FramePro
 }
 
 /** Shared canvas set-up: one look for every 3D view in the app. */
-export default function Stage({ children, camera, bloom = 0.55, className }: Props) {
+export default function Stage({ children, camera, bloom = 0.55, className, plain }: Props) {
   return (
     <Canvas
       className={className}
@@ -72,17 +75,17 @@ export default function Stage({ children, camera, bloom = 0.55, className }: Pro
       onCreated={(state) => {
         const { gl, scene } = state;
         if (import.meta.env.DEV) (window as unknown as { __three: unknown }).__three = state;
-        gl.toneMappingExposure = 1.4;
-        scene.background = new THREE.Color('#04070a');
+        scene.background = plain ? new THREE.Color(plain) : brandBackground();
       }}
     >
       <Suspense fallback={null}>{children}</Suspense>
       {/* multisampling stays off: the composer's MSAA blit fails on some GPU back ends and blanks the frame */}
       <EffectComposer multisampling={0}>
-        <Bloom mipmapBlur intensity={bloom} luminanceThreshold={0.7} luminanceSmoothing={0.25} radius={0.7} />
-        <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+        <Bloom mipmapBlur intensity={bloom} luminanceThreshold={0.82} luminanceSmoothing={0.2} radius={0.7} />
+        {/* linear: the university navy and gold must come out exactly as authored, and filmic curves shift dark blues */}
+        <ToneMapping mode={ToneMappingMode.LINEAR} />
         <SMAA />
-        <Vignette offset={0.32} darkness={0.6} />
+        <Vignette offset={0.3} darkness={0.38} />
       </EffectComposer>
     </Canvas>
   );

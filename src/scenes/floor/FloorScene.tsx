@@ -56,11 +56,11 @@ function Cameras({ frame }: { frame: React.RefObject<Frame> }) {
       const line = lines.current[i];
       if (line) {
         const m = line.material as THREE.LineBasicMaterial;
-        m.opacity += ((on ? 0.13 : 0) - m.opacity) * 0.15;
+        m.opacity += ((on ? 0.16 : 0) - m.opacity) * 0.15;
       }
       const body = bodies.current[i];
       if (body) {
-        body.emissive.set(on ? '#7fe3ff' : '#ff4530');
+        body.emissive.set(on ? '#ffffff' : '#ff4d5e');
         body.emissiveIntensity = on ? 1.6 : 0.6 + 3 * blink;
       }
     }
@@ -71,10 +71,10 @@ function Cameras({ frame }: { frame: React.RefObject<Frame> }) {
         <group key={i}>
           <mesh position={r.eye}>
             <boxGeometry args={[0.22, 0.16, 0.22]} />
-            <meshStandardMaterial ref={(m) => void (bodies.current[i] = m)} color="#0e161d" emissive="#7fe3ff" emissiveIntensity={1.6} roughness={0.4} />
+            <meshStandardMaterial ref={(m) => void (bodies.current[i] = m)} color="#16305c" emissive="#ffffff" emissiveIntensity={1.6} roughness={0.4} />
           </mesh>
           <lineSegments ref={(m) => void (lines.current[i] = m)} geometry={r.g}>
-            <lineBasicMaterial color="#7fe3ff" transparent opacity={0.13} depthWrite={false} />
+            <lineBasicMaterial color="#ffffff" transparent opacity={0.16} depthWrite={false} />
           </lineSegments>
         </group>
       ))}

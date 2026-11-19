@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import type { Frame } from '../../lib/frame';
 import { PLAN } from './layout';
 
-const TONES = ['#cdd8e0', '#b9c7d1', '#dfe6ea', '#a9bac6', '#c3cfd8'];
+const TONES = ['#ffffff', '#e6eefc', '#f4f7ff', '#d5e2f8', '#edf2fd'];
 
 interface Person {
   room: number;
@@ -67,16 +67,16 @@ export default function People({ frame, dim = 0 }: { frame: React.RefObject<Fram
     heads.current.instanceMatrix.needsUpdate = true;
   });
 
-  const emissive = 0.1 * (1 - dim);
+  const emissive = 0.22 * (1 - dim);
   return (
     <group>
       <instancedMesh ref={bodies} args={[undefined, undefined, people.length]} castShadow frustumCulled={false}>
         <capsuleGeometry args={[0.17, 0.5, 4, 10]} />
-        <meshStandardMaterial roughness={0.55} metalness={0.05} emissive="#9fb4c2" emissiveIntensity={emissive} />
+        <meshStandardMaterial roughness={0.55} metalness={0.05} emissive="#dbe8ff" emissiveIntensity={emissive} />
       </instancedMesh>
       <instancedMesh ref={heads} args={[undefined, undefined, people.length]} castShadow frustumCulled={false}>
         <sphereGeometry args={[0.125, 14, 12]} />
-        <meshStandardMaterial roughness={0.5} metalness={0.05} emissive="#9fb4c2" emissiveIntensity={emissive} />
+        <meshStandardMaterial roughness={0.5} metalness={0.05} emissive="#dbe8ff" emissiveIntensity={emissive} />
       </instancedMesh>
     </group>
   );
