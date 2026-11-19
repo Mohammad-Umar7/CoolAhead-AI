@@ -1,0 +1,16 @@
+{
+  "id": "empty1",
+  "w": 640,
+  "h": 360,
+  "fps": 20,
+  "frames": 116,
+  "step": 2,
+  "people": 0,
+  "source": {
+    "title": "Empty Conference Room with Red Press Background",
+    "url": "https://www.pexels.com/video/empty-conference-room-with-red-press-background-34199357/",
+    "author": "Tomaž Rakovec",
+    "licence": "Pexels License"
+  },
+  "tracks": []
+}

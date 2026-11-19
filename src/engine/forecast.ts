@@ -1,4 +1,4 @@
-import { AHU, HORIZON, LOOKAHEAD, PHYS, ROOMS, TIMETABLE } from './config';
+import { AHU, HORIZON, LOOKAHEAD, PHYS, ROOMS, TIMETABLE, recall } from './config';
 import { blockAt, presence, timetableExpectation } from './occupancy';
 import { ROOM_PHYS, outdoorTemp, sunFactor } from './plant';
 import type { Basis, ClassBlock, PlantState } from './types';
@@ -28,7 +28,7 @@ const leaving = (t: number, end: number) => 1 - 1 / (1 + Math.exp(-(t - (end + 2
 /** The detector misses a few people in dense rooms; correct by its known recall. */
 const corrected = (count: number, room: number) => {
   const cap = ROOMS[room].capacity;
-  return Math.min(cap, count / (1 - (0.025 + (0.06 * count) / cap)));
+  return Math.min(cap, count / recall(count, cap));
 };
 
 function expectationExcluding(room: number, t: number, skip: ClassBlock | null) {

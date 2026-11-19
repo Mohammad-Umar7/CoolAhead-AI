@@ -85,10 +85,10 @@ export default function Country({ geo, state }: { geo: GeoData; state: React.Ref
 
   const mats = useMemo(
     () => ({
-      borders: new THREE.LineBasicMaterial({ color: '#c6d8f7', transparent: true, opacity: 0, depthWrite: false }),
-      neighbours: new THREE.LineBasicMaterial({ color: '#6f8cc4', transparent: true, opacity: 0, depthWrite: false }),
-      graticule: new THREE.LineBasicMaterial({ color: '#2f5192', transparent: true, opacity: 0, depthWrite: false }),
-      dots: new THREE.PointsMaterial({ color: '#a9c6f7', size: 1.7, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false }),
+      borders: new THREE.LineBasicMaterial({ color: '#7c8696', transparent: true, opacity: 0, depthWrite: false }),
+      neighbours: new THREE.LineBasicMaterial({ color: '#a7adb8', transparent: true, opacity: 0, depthWrite: false }),
+      graticule: new THREE.LineBasicMaterial({ color: '#d5d0c3', transparent: true, opacity: 0, depthWrite: false }),
+      dots: new THREE.PointsMaterial({ color: '#b3bac6', size: 1.7, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false }),
     }),
     [],
   );
@@ -125,8 +125,8 @@ export default function Country({ geo, state }: { geo: GeoData; state: React.Ref
       <lineSegments geometry={borders} material={mats.borders} />
       {rings.map((pts, i) => (
         <group key={i}>
-          <Line ref={(l) => void (glow.current[i] = l as Line2 | null)} points={pts} color="#f3d004" lineWidth={6 * k} transparent opacity={0.2} depthWrite={false} />
-          <Line ref={(l) => void (lines.current[i] = l as Line2 | null)} points={pts} color="#ffe24a" lineWidth={1.7 * k} transparent depthWrite={false} />
+          <Line ref={(l) => void (glow.current[i] = l as Line2 | null)} points={pts} color="#1f5fee" lineWidth={6 * k} transparent opacity={0.2} depthWrite={false} />
+          <Line ref={(l) => void (lines.current[i] = l as Line2 | null)} points={pts} color="#0f1522" lineWidth={1.9 * k} transparent depthWrite={false} />
         </group>
       ))}
     </group>

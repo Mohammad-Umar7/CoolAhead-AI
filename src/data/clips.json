@@ -1,0 +1,86 @@
+[
+  {
+    "id": "a302",
+    "people": 36,
+    "fps": 20,
+    "frames": 112,
+    "w": 640,
+    "h": 360,
+    "source": {
+      "title": "Audience raise hands at business conference",
+      "url": "https://mixkit.co/free-stock-video/audience-raise-hands-at-business-conference-13192/",
+      "author": "Mixkit",
+      "licence": "Mixkit Restricted License"
+    }
+  },
+  {
+    "id": "a301",
+    "people": 19,
+    "fps": 20,
+    "frames": 180,
+    "w": 640,
+    "h": 360,
+    "source": {
+      "title": "Medical lecture at a University",
+      "url": "https://mixkit.co/free-stock-video/medical-lecture-at-a-university-27729/",
+      "author": "Mixkit",
+      "licence": "Mixkit Restricted License"
+    }
+  },
+  {
+    "id": "a303",
+    "people": 10,
+    "fps": 20,
+    "frames": 200,
+    "w": 640,
+    "h": 360,
+    "source": {
+      "title": "Students in Class",
+      "url": "https://www.pexels.com/video/students-in-class-10602890/",
+      "author": "Vincuk Konan",
+      "licence": "Pexels License"
+    }
+  },
+  {
+    "id": "empty1",
+    "people": 0,
+    "fps": 20,
+    "frames": 116,
+    "w": 640,
+    "h": 360,
+    "source": {
+      "title": "Empty Conference Room with Red Press Background",
+      "url": "https://www.pexels.com/video/empty-conference-room-with-red-press-background-34199357/",
+      "author": "Tomaž Rakovec",
+      "licence": "Pexels License"
+    }
+  },
+  {
+    "id": "empty2",
+    "people": 0,
+    "fps": 20,
+    "frames": 160,
+    "w": 640,
+    "h": 360,
+    "source": {
+      "title": "Empty Classroom",
+      "url": "https://www.pexels.com/video/empty-classroom-5734765/",
+      "author": "Pavel Danilyuk",
+      "licence": "Pexels License"
+    }
+  },
+  {
+    "id": "empty3",
+    "people": 0,
+    "fps": 20,
+    "frames": 180,
+    "w": 640,
+    "h": 360,
+    "source": {
+      "title": "Empty Classroom with Desks and Whiteboard",
+      "url": "https://www.pexels.com/video/empty-classroom-with-desks-and-whiteboard-40205134/",
+      "author": "Elements Interactive",
+      "licence": "Pexels License"
+    }
+  }
+]

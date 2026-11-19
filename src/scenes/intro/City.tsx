@@ -77,11 +77,11 @@ const blockFragment = /* glsl */ `
     float along = dot(vWorld - cameraPosition, axis) / dot(axis, axis);
     float off = length(vWorld - (cameraPosition + axis * clamp(along, 0.0, 1.0)));
     if (uClear > 0.5 && along > -0.2 && along < 0.86 && off < 46.0 + 70.0 * (1.0 - along)) discard;
-    // unlit and graded by height: a massing model in the university's navy
-    vec3 low = vec3(0.005, 0.016, 0.062);
-    vec3 high = vec3(0.022, 0.058, 0.18);
+    // unlit and graded by height: a white massing model, a shade darker at the foot of each wall
+    vec3 low = vec3(0.6, 0.585, 0.54);
+    vec3 high = vec3(0.93, 0.915, 0.87);
     float near = 1.0 - smoothstep(100.0, 800.0, length(vWorld.xz - uFocus.xz));
-    vec3 col = mix(low, high, vShade) * (0.62 + 0.7 * near);
+    vec3 col = mix(low, high, vShade) * (0.9 + 0.1 * near);
     gl_FragColor = vec4(col, uOpacity);
   }
 `;
@@ -107,18 +107,18 @@ export default function City({ city, state }: { city: CityData; state: React.Ref
 
   const mats = useMemo(
     () => ({
-      coast: new THREE.LineBasicMaterial({ color: '#a9c6f7', transparent: true, opacity: 0, depthWrite: false }),
-      arterials: new THREE.LineBasicMaterial({ color: '#f3d004', transparent: true, opacity: 0, depthWrite: false }),
-      links: new THREE.LineBasicMaterial({ color: '#c9a61a', transparent: true, opacity: 0, depthWrite: false }),
-      main: new THREE.LineBasicMaterial({ color: '#f3d004', transparent: true, opacity: 0, depthWrite: false }),
-      minor: new THREE.LineBasicMaterial({ color: '#7f9fd8', transparent: true, opacity: 0, depthWrite: false }),
+      coast: new THREE.LineBasicMaterial({ color: '#7c8696', transparent: true, opacity: 0, depthWrite: false }),
+      arterials: new THREE.LineBasicMaterial({ color: '#1f5fee', transparent: true, opacity: 0, depthWrite: false }),
+      links: new THREE.LineBasicMaterial({ color: '#7d9cf0', transparent: true, opacity: 0, depthWrite: false }),
+      main: new THREE.LineBasicMaterial({ color: '#4b5565', transparent: true, opacity: 0, depthWrite: false }),
+      minor: new THREE.LineBasicMaterial({ color: '#a7adb8', transparent: true, opacity: 0, depthWrite: false }),
       blocks: new THREE.ShaderMaterial({
         vertexShader: blockVertex,
         fragmentShader: blockFragment,
         uniforms: { uOpacity: { value: 1 }, uFocus: { value: new THREE.Vector3(CAMPUS.east, 18, -CAMPUS.north) }, uClear: { value: 0 } },
         transparent: true,
       }),
-      edges: new THREE.LineBasicMaterial({ color: '#b9d2f5', transparent: true, opacity: 0, depthWrite: false }),
+      edges: new THREE.LineBasicMaterial({ color: '#7c8696', transparent: true, opacity: 0, depthWrite: false }),
     }),
     [],
   );

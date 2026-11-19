@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { AnchorEls } from '../scenes/Anchors';
 import Stage from '../scenes/Stage';
 import IntroScene, { BEAT, newIntroState, type IntroHud, type IntroState } from '../scenes/intro/IntroScene';
@@ -39,7 +39,7 @@ export default function Intro() {
       if (e.key !== 'Enter' && e.key !== ' ') return;
       e.preventDefault();
       if (state.current.time < BEAT.title) skip();
-      else enter('/twin');
+      else enter('/agents');
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -51,7 +51,7 @@ export default function Intro() {
 
   return (
     <div className={`intro is-${stage}`}>
-      <Stage camera={{ position: [0, 760000, 0], fov: 34, near: 1000, far: 4e7 }} bloom={0.85}>
+      <Stage camera={{ position: [0, 760000, 0], fov: 34, near: 1000, far: 4e7 }} bloom={0} plain="#f3f1ea">
         <IntroScene state={state} labels={labels} hud={hud} />
       </Stage>
 
@@ -85,14 +85,14 @@ export default function Intro() {
       </div>
 
       <header className="intro-head">
-        <div className="brand">
+        <div className="intro-brand">
           <Mark />
-          <span className="brand-name">
+          <span>
             CoolAhead<i>AI</i>
           </span>
         </div>
-        <span className="label">Liwa University · Smart Campus Hackathon</span>
-        <button className="intro-skip label" onClick={skip}>
+        <span className="intro-event mono">Liwa University · Smart Campus Hackathon</span>
+        <button className="intro-skip mono" onClick={skip}>
           Skip intro
         </button>
       </header>
@@ -113,26 +113,24 @@ export default function Intro() {
       </div>
 
       <section className="intro-title">
-        <p className="label">Privacy-aware predictive cooling for shared AC zones</p>
-        <h1 className="display">
+        <p className="intro-kicker mono">Privacy-aware predictive cooling for shared AC zones</p>
+        <h1>
           Cool<em>Ahead</em> AI
         </h1>
         <p className="intro-lede">
-          One air handler often serves several classrooms. CoolAhead counts people without recognising anyone, reads the timetable, and recommends how the whole zone should run: ahead of the
-          lecture, not after the room is already warm.
+          One air handler often cools several classrooms at once. CoolAhead counts the people in each room without recognising anyone, reads the timetable, and tells the facilities team how the whole zone
+          should run: before the lecture, not after the room is already warm.
         </p>
         <div className="intro-cta">
-          <button className="btn primary" onClick={() => enter('/twin')}>
-            Enter the twin
-            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-              <path d="M2 8h11M9 3.5 13.5 8 9 12.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          <button className="intro-go" onClick={() => enter('/agents')}>
+            Watch the agents decide
+            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+              <path d="M2 8h11M9 3.5 13.5 8 9 12.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          <Link className="btn" to="/agents">
-            How the agents decide
-          </Link>
+          <span className="intro-key mono">or press Enter</span>
         </div>
-        <p className="intro-team">
+        <p className="intro-team mono">
           Mohammad Umar · Bilal Feroz · Aamir Koily
           <span>Supervisor: Zaid Hadya</span>
         </p>

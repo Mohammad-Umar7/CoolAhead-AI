@@ -1,3 +1,4 @@
+import { DETECTED } from '../data/footage';
 import type { ClassBlock, Mode, ModeSpec, PlantMode, RoomSpec } from './types';
 
 export const hm = (h: number, m = 0) => h * 60 + m;
@@ -25,27 +26,50 @@ export const LOOKAHEAD = 45;
 
 export const ZONE = { id: 'AHU-3A', floor: 3, building: 'Block A' };
 
+/**
+ * Share of the people in a room that the detector finds. It misses a few in a
+ * dense room, so a count is divided by this to estimate who is really there.
+ */
+export const recall = (count: number, capacity: number) => 1 - (0.025 + (0.06 * count) / capacity);
+
+const ceil5 = (v: number) => Math.ceil(v / 5) * 5;
+/** Seats per room, sized so the class in the room's sample footage fills about three quarters of it. */
+const SEATS = DETECTED.map((n) => Math.max(15, ceil5(n * 1.4)));
+/** People in each room during a class: the head count from its footage, corrected for the detector's recall. */
+export const PRESENT = DETECTED.map((n, i) => Math.min(SEATS[i], Math.round(n / recall(n, SEATS[i]))));
+
 /** Three simulated classrooms on one air handler. Flow shares are fixed by the ductwork. */
 export const ROOMS: RoomSpec[] = [
-  { id: 'A-301', name: 'Lecture room', capacity: 40, w: 9, d: 8, h: 3.2, share: 0.31, ua: 48, solar: 950 },
-  { id: 'A-302', name: 'Lecture hall', capacity: 60, w: 12, d: 8, h: 3.2, share: 0.44, ua: 62, solar: 1300 },
-  { id: 'A-303', name: 'Seminar room', capacity: 30, w: 7, d: 8, h: 3.2, share: 0.25, ua: 40, solar: 750 },
+  { id: 'A-301', name: 'Lecture room', capacity: SEATS[0], w: 9, d: 8, h: 3.2, share: 0.31, ua: 48, solar: 950 },
+  { id: 'A-302', name: 'Lecture hall', capacity: SEATS[1], w: 12, d: 8, h: 3.2, share: 0.44, ua: 62, solar: 1300 },
+  { id: 'A-303', name: 'Seminar room', capacity: SEATS[2], w: 7, d: 8, h: 3.2, share: 0.25, ua: 40, solar: 750 },
 ];
+
+/** A class as the registrar lists it: enrolment sits a little above or below who turns up on the day. */
+const block = (room: number, start: number, end: number, code: string, title: string, history: number, lean: number): ClassBlock => ({
+  room,
+  start,
+  end,
+  code,
+  title,
+  enrolled: Math.min(ROOMS[room].capacity, Math.round((PRESENT[room] * lean) / history)),
+  history,
+});
 
 /** Sample timetable (the prototype reads this from a CSV). */
 export const TIMETABLE: ClassBlock[] = [
-  { room: 0, start: hm(8, 0), end: hm(9, 15), code: 'CSC 201', title: 'Data Structures', enrolled: 34, history: 0.88 },
-  { room: 0, start: hm(9, 30), end: hm(10, 45), code: 'MTH 210', title: 'Linear Algebra', enrolled: 38, history: 0.84 },
-  { room: 0, start: hm(13, 0), end: hm(14, 15), code: 'ENG 105', title: 'Academic Writing', enrolled: 28, history: 0.9 },
-  { room: 0, start: hm(16, 30), end: hm(17, 45), code: 'CSC 330', title: 'Database Systems', enrolled: 31, history: 0.86 },
+  block(0, hm(8, 0), hm(9, 15), 'CSC 201', 'Data Structures', 0.88, 1.06),
+  block(0, hm(9, 30), hm(10, 45), 'MTH 210', 'Linear Algebra', 0.84, 1.1),
+  block(0, hm(13, 0), hm(14, 15), 'ENG 105', 'Academic Writing', 0.9, 0.96),
+  block(0, hm(16, 30), hm(17, 45), 'CSC 330', 'Database Systems', 0.86, 1.0),
 
-  { room: 1, start: hm(8, 30), end: hm(9, 45), code: 'PHY 110', title: 'Physics I', enrolled: 52, history: 0.87 },
-  { room: 1, start: hm(10, 0), end: hm(11, 15), code: 'BUS 201', title: 'Principles of Marketing', enrolled: 47, history: 0.83 },
-  { room: 1, start: hm(13, 30), end: hm(14, 45), code: 'HSC 120', title: 'Human Anatomy', enrolled: 55, history: 0.91 },
+  block(1, hm(8, 40), hm(9, 55), 'PHY 110', 'Physics I', 0.87, 1.05),
+  block(1, hm(10, 10), hm(11, 25), 'BUS 201', 'Principles of Marketing', 0.83, 0.95),
+  block(1, hm(13, 30), hm(14, 45), 'HSC 120', 'Human Anatomy', 0.91, 1.07),
 
-  { room: 2, start: hm(9, 0), end: hm(10, 15), code: 'ENG 240', title: 'Technical Communication', enrolled: 22, history: 0.86 },
-  { room: 2, start: hm(14, 0), end: hm(15, 15), code: 'MIS 310', title: 'Information Systems', enrolled: 25, history: 0.88 },
-  { room: 2, start: hm(17, 30), end: hm(18, 45), code: 'CAP 490', title: 'Capstone Lab', enrolled: 14, history: 0.9 },
+  block(2, hm(9, 0), hm(10, 15), 'ENG 240', 'Technical Communication', 0.86, 1.07),
+  block(2, hm(14, 0), hm(15, 15), 'MIS 310', 'Information Systems', 0.88, 0.96),
+  block(2, hm(17, 30), hm(18, 45), 'CAP 490', 'Capstone Lab', 0.9, 1.0),
 ];
 
 /** Things the timetable does not know. They are what the cameras are for. */
@@ -53,7 +77,7 @@ export const SURPRISES = {
   /** MTH 210 is cancelled on the day, the timetable still lists it */
   noShowBlock: 1,
   /** an unscheduled guest talk fills A-302 while the timetable shows the zone free */
-  surge: { room: 1, start: hm(15, 27), end: hm(16, 15), people: 44 },
+  surge: { room: 1, start: hm(15, 27), end: hm(16, 15), people: PRESENT[1] },
   /** the A-301 camera drops out while it is the only occupied room in the zone */
   cameraOut: { room: 0, start: hm(16, 50), end: hm(17, 25) },
 };

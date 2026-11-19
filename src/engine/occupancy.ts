@@ -1,4 +1,5 @@
-import { ROOMS, STEPS, SURPRISES, T0, TIMETABLE } from './config';
+import { DETECTED } from '../data/footage';
+import { PRESENT, ROOMS, STEPS, SURPRISES, T0, TIMETABLE } from './config';
 import type { ClassBlock } from './types';
 
 /** Small deterministic generator so every run of the day is identical. */
@@ -54,9 +55,10 @@ export interface OccupancyDay {
 }
 
 /**
- * Ground truth for the simulated day, and what a camera with a person detector
- * would report: a slight undercount in dense rooms, and nothing at all while
- * the feed is down.
+ * Ground truth for the simulated day, and what each room's camera reports.
+ * A class is as large as the one in the room's sample footage, and the camera
+ * reports the boxes the detector found in that footage, scaled while people are
+ * still arriving or leaving. It reports nothing at all while the feed is down.
  */
 export function buildOccupancy(seed = 7): OccupancyDay {
   const rnd = mulberry32(seed);
@@ -66,11 +68,7 @@ export function buildOccupancy(seed = 7): OccupancyDay {
   const conf = ROOMS.map(() => new Float32Array(n));
   const online = ROOMS.map(() => new Uint8Array(n).fill(1));
 
-  const attendance = TIMETABLE.map((b, i) => {
-    if (i === SURPRISES.noShowBlock) return 0;
-    const share = Math.min(1, Math.max(0.6, b.history + (rnd() - 0.5) * 0.12));
-    return Math.round(b.enrolled * share);
-  });
+  const attendance = TIMETABLE.map((b, i) => (i === SURPRISES.noShowBlock ? 0 : PRESENT[b.room]));
 
   for (let k = 0; k < n; k++) {
     const t = T0 + k;
@@ -98,9 +96,7 @@ export function buildOccupancy(seed = 7): OccupancyDay {
         continue;
       }
       const density = truth / ROOMS[r].capacity;
-      const miss = 0.025 + 0.06 * density;
-      const jitter = truth > 0 ? Math.round((rnd() - 0.5) * 2.2) : 0;
-      est[r][k] = Math.max(0, Math.round(truth * (1 - miss)) + jitter);
+      est[r][k] = Math.round(DETECTED[r] * Math.min(1, truth / PRESENT[r]));
       conf[r][k] = Math.min(0.99, Math.max(0.6, 0.97 - 0.11 * density + (rnd() - 0.5) * 0.03));
     }
   }

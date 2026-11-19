@@ -100,19 +100,19 @@ function Beacon({ state }: { state: React.RefObject<IntroState> }) {
     <group position={CAMPUS_POS}>
       <mesh ref={ring} rotation-x={-Math.PI / 2}>
         <ringGeometry args={[0.94, 1, 64]} />
-        <meshBasicMaterial color="#f3d004" transparent opacity={0} depthTest={false} depthWrite={false} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#1f5fee" transparent opacity={0} depthTest={false} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
       <mesh ref={ring2} rotation-x={-Math.PI / 2}>
         <ringGeometry args={[0.94, 1, 64]} />
-        <meshBasicMaterial color="#f3d004" transparent opacity={0} depthTest={false} depthWrite={false} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#1f5fee" transparent opacity={0} depthTest={false} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
       <mesh ref={dot} rotation-x={-Math.PI / 2}>
         <circleGeometry args={[1, 32]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0} depthTest={false} depthWrite={false} />
+        <meshBasicMaterial color="#0f1522" transparent opacity={0} depthTest={false} depthWrite={false} />
       </mesh>
       <mesh ref={beam}>
         <cylinderGeometry args={[1, 1, 1, 12, 1, true]} />
-        <meshBasicMaterial color="#f3d004" transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} />
+        <meshBasicMaterial color="#1f5fee" transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
     </group>
   );
@@ -123,10 +123,10 @@ const groundFragment = /* glsl */ `
   uniform float uOn;
   void main() {
     float r = length(vUv - 0.5) * 2.0;
-    // a pool of site lighting around the campus, falling off into the night
-    vec3 base = vec3(0.006, 0.017, 0.06);
-    vec3 pool = vec3(0.014, 0.036, 0.11) * pow(max(0.0, 1.0 - r * 6.0), 2.0);
-    gl_FragColor = vec4((base + pool) * uOn, uOn * (1.0 - smoothstep(0.75, 1.0, r)));
+    // the site as a sheet of paving, a little lighter round the campus
+    vec3 base = vec3(0.8, 0.785, 0.735);
+    vec3 pool = vec3(0.07, 0.07, 0.07) * pow(max(0.0, 1.0 - r * 6.0), 2.0);
+    gl_FragColor = vec4(base + pool, uOn * (1.0 - smoothstep(0.75, 1.0, r)));
   }
 `;
 

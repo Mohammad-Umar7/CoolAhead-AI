@@ -158,7 +158,7 @@ export default function Stage({ children, camera, bloom = 0.55, className, plain
           <ToneMapping mode={ToneMappingMode.LINEAR} />
           {tilt > 0 ? <TiltShift2 blur={tilt} taper={0.55} samples={8} /> : <></>}
           <SMAA />
-          <Vignette offset={0.3} darkness={0.38} />
+          {plain ? <></> : <Vignette offset={0.3} darkness={0.38} />}
         </EffectComposer>
       </Canvas>
     </div>

@@ -1,0 +1,474 @@
+/* The page is laid out once for a 1440 x 810 frame and scaled as a whole (see lib/fit.ts). */
+.app {
+  position: fixed;
+  inset: 0;
+  zoom: var(--k, 1);
+  background: var(--paper);
+}
+
+/* 3D views measure themselves in screen pixels, so they step back out of the page scale */
+.unscaled {
+  width: 100%;
+  height: 100%;
+  zoom: var(--k-inv, 1);
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+}
+
+.stage-wait {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.page {
+  position: absolute;
+  inset: var(--bar-h) 0 0 0;
+}
+
+/* ---------- top bar ---------- */
+
+.topbar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 30;
+  height: var(--bar-h);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 32px;
+  background: rgba(243, 241, 234, 0.86);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+}
+
+.brand-name {
+  font: 700 17px/1 var(--display);
+  font-stretch: 112%;
+  letter-spacing: -0.02em;
+}
+
+.brand-name i {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-left: 5px;
+}
+
+.brand-sub {
+  margin-left: 6px;
+  padding-left: 14px;
+  border-left: 1px solid var(--line-2);
+}
+
+.nav {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+}
+
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 16px 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  transition:
+    background 0.25s var(--ease),
+    color 0.25s var(--ease);
+}
+
+.nav a b {
+  font: 500 10px/1 var(--mono);
+  color: var(--ink-4);
+}
+
+.nav a:hover {
+  color: var(--ink);
+}
+
+.nav a.on {
+  background: var(--em);
+  color: var(--on-em);
+}
+
+.nav a.on b {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.topbar-right {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sim-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.sim-chip i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.sim-chip b {
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0;
+  font-size: 13px;
+}
+
+/* ---------- shared pieces ---------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  background: var(--card);
+  font-size: 13px;
+  font-weight: 500;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    transform 0.2s var(--ease);
+}
+
+.btn:hover {
+  border-color: var(--ink);
+}
+
+.btn.primary {
+  background: var(--em);
+  border-color: var(--em);
+  color: var(--on-em);
+}
+
+.btn.primary:hover {
+  transform: translateY(-1px);
+}
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line-2);
+  background: var(--card);
+  color: var(--ink);
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.icon-btn:hover {
+  border-color: var(--ink);
+}
+
+.icon-btn.big {
+  width: 42px;
+  height: 42px;
+  background: var(--em);
+  border-color: var(--em);
+  color: var(--on-em);
+}
+
+.icon-btn svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 999px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+}
+
+.seg button {
+  height: 28px;
+  padding: 0 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.seg button:hover {
+  color: var(--ink);
+}
+
+.seg button[aria-pressed='true'] {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(15, 21, 34, 0.14);
+}
+
+/* a mode, said the same way everywhere */
+.mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 24px;
+  padding: 0 10px 0 8px;
+  border-radius: 999px;
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: var(--m-wash);
+  color: var(--m);
+}
+
+.mode i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--m);
+}
+
+[data-mode='STANDBY'],
+[data-mode='OFF'] {
+  --m: #6c7482;
+  --m-wash: var(--standby-wash);
+  --m-solid: var(--standby);
+}
+[data-mode='PRECOOL'] {
+  --m: var(--precool);
+  --m-wash: var(--precool-wash);
+  --m-solid: var(--precool);
+}
+[data-mode='REDUCED'] {
+  --m: var(--reduced);
+  --m-wash: var(--reduced-wash);
+  --m-solid: var(--reduced);
+}
+[data-mode='NORMAL'] {
+  --m: var(--normal);
+  --m-wash: var(--normal-wash);
+  --m-solid: var(--normal);
+}
+
+/* ---------- the day, as one ribbon ---------- */
+
+.ribbon {
+  position: relative;
+  height: 74px;
+  user-select: none;
+}
+
+.rb-flags {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 30px;
+}
+
+.rb-flag {
+  position: absolute;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px 0 5px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition:
+    background 0.25s var(--ease),
+    color 0.25s var(--ease),
+    border-color 0.25s var(--ease),
+    transform 0.25s var(--ease);
+}
+
+.rb-flag b {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--paper-2);
+  font: 600 9.5px/1 var(--mono);
+  color: var(--ink-2);
+}
+
+.rb-flag::after {
+  content: '';
+  position: absolute;
+  left: var(--stem, 50%);
+  top: 100%;
+  width: 1px;
+  height: 7px;
+  background: var(--line-2);
+}
+
+.rb-flag:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.rb-flag.on {
+  background: var(--em);
+  border-color: var(--em);
+  color: var(--on-em);
+}
+
+.rb-flag.on b {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--on-em);
+}
+
+.rb-flag.on::after {
+  background: var(--em);
+  height: 9px;
+}
+
+.rb-track {
+  position: absolute;
+  inset: 37px 0 auto 0;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--paper-2);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.rb-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--m-solid);
+}
+
+.rb-seg[data-mode='STANDBY'] {
+  opacity: 0.45;
+}
+
+.rb-cursor {
+  position: absolute;
+  top: 31px;
+  width: 2px;
+  height: 26px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--em);
+  pointer-events: none;
+}
+
+.rb-cursor::before {
+  content: attr(data-t);
+  position: absolute;
+  left: 50%;
+  top: 28px;
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--em);
+  color: var(--on-em);
+  font: 600 10.5px/1.2 var(--mono);
+  white-space: nowrap;
+}
+
+.rb-hours {
+  position: absolute;
+  inset: 57px 0 auto 0;
+  height: 14px;
+}
+
+.rb-hours span {
+  position: absolute;
+  transform: translateX(-50%);
+  font: 500 10px/1.4 var(--mono);
+  color: var(--ink-4);
+}
+
+.rb-hours span:first-child {
+  transform: none;
+}
+
+.rb-hours span:last-child {
+  transform: translateX(-100%);
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend i {
+  width: 14px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--m-solid);
+}
+
+.fine {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}

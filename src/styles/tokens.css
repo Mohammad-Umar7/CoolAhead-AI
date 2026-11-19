@@ -1,0 +1,166 @@
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource-variable/geist/wght.css';
+@import '@fontsource-variable/geist-mono/wght.css';
+
+/*
+ * CoolAhead. One sheet of warm paper from the first frame of the intro to the
+ * last page, ink for words, and colour only where it carries meaning: the four
+ * ways the air handler can run, heat, and what the cameras have found.
+ */
+:root {
+  --paper: #f3f1ea;
+  --paper-2: #ebe8df;
+  --card: #ffffff;
+  --line: #dfdbd0;
+  --line-2: #c9c4b7;
+  --ink: #0f1522;
+  --ink-2: #454d5c;
+  --ink-3: #7b8391;
+  --ink-4: #a7adb8;
+  /* the one dark thing: a pressed button, the active tab */
+  --em: #0f1522;
+  --on-em: #ffffff;
+
+  /* how the zone can run */
+  --standby: #9aa1ae;
+  --precool: #7c5cf5;
+  --reduced: #0d9f6c;
+  --normal: #1f5fee;
+  --off: #c8ccd4;
+
+  /* state */
+  --live: #0d9f6c;
+  --warn: #d97a06;
+  --hot: #e2452f;
+  --focus: #1f5fee;
+  --gold: #e0a800;
+  --cyan: #0aa884;
+
+  --standby-wash: #eef0f3;
+  --precool-wash: #efeaff;
+  --reduced-wash: #e2f5ec;
+  --normal-wash: #e6eeff;
+  --warn-wash: #fdf1dc;
+  --hot-wash: #fdebe7;
+
+  --display: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+  --ui: 'Geist Variable', 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+
+  --r-lg: 16px;
+  --r-md: 12px;
+  --r-sm: 8px;
+  --shadow: 0 1px 0 rgba(15, 21, 34, 0.04), 0 10px 30px -18px rgba(15, 21, 34, 0.28);
+  --shadow-lift: 0 1px 0 rgba(15, 21, 34, 0.05), 0 22px 48px -22px rgba(15, 21, 34, 0.4);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --bar-h: 54px;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 14px/1.5 var(--ui);
+  font-feature-settings: 'ss01', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+p,
+ol,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: rgba(31, 95, 238, 0.2);
+}
+
+.mono {
+  font-family: var(--mono);
+  font-feature-settings: 'zero', 'ss01';
+}
+
+.num {
+  font-family: var(--display);
+  font-stretch: 108%;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* small capitals in the fixed-width face: the voice of labels and units */
+.label {
+  font: 500 10.5px/1.2 var(--mono);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.turn {
+  display: none;
+}
+
+@media (orientation: portrait) and (max-width: 700px) {
+  .turn {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-content: center;
+    gap: 12px;
+    padding: 32px;
+    background: var(--paper);
+    text-align: center;
+  }
+  .turn strong {
+    font: 700 26px/1 var(--display);
+    font-stretch: 112%;
+  }
+  .turn span {
+    color: var(--ink-2);
+  }
+}

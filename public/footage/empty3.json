@@ -1,0 +1,16 @@
+{
+  "id": "empty3",
+  "w": 640,
+  "h": 360,
+  "fps": 20,
+  "frames": 180,
+  "step": 2,
+  "people": 0,
+  "source": {
+    "title": "Empty Classroom with Desks and Whiteboard",
+    "url": "https://www.pexels.com/video/empty-classroom-with-desks-and-whiteboard-40205134/",
+    "author": "Elements Interactive",
+    "licence": "Pexels License"
+  },
+  "tracks": []
+}

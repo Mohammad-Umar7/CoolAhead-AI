@@ -4,11 +4,12 @@ import { HashRouter } from 'react-router-dom';
 import App from './App';
 import { fitToWindow } from './lib/fit';
 import { startClock, useSim } from './state/sim';
-import './styles/global.css';
-import './styles/app.css';
+import './styles/tokens.css';
+import './styles/shell.css';
 import './styles/intro.css';
 import './styles/agents.css';
-import './styles/compare.css';
+import './styles/twin.css';
+import './styles/impact.css';
 
 fitToWindow();
 startClock();
