@@ -133,7 +133,8 @@ const fragment = /* glsl */ `
       float bay = (1.0 - smoothstep(0.0, 0.03, abs(fract(vFacade.x / 6.0) - 0.5) * 2.0 - 0.94)) * wall * 0.0;
       float rim = pow(1.0 - abs(dot(normalize(vNormalW), vView)), 2.5);
       float a = 0.014 + storey * 0.22 + rim * 0.09 + band * 0.6 + bay;
-      gl_FragColor = vec4(vec3(0.5, 0.89, 1.0) * (0.75 + band * 1.4), a);
+      vec3 shell = mix(vec3(0.82, 0.9, 1.0), vec3(1.0, 0.84, 0.16), band);
+      gl_FragColor = vec4(shell * (0.8 + band * 1.6), a);
       return;
     }
     if (above > 0.5) discard;
@@ -155,14 +156,14 @@ const fragment = /* glsl */ `
       float spandrel = 1.0 - step(0.2, fy);
       float mullion = max(1.0 - smoothstep(0.0, 0.05, min(fx, 1.0 - fx)), 1.0 - smoothstep(0.0, 0.04, min(fy, 1.0 - fy)));
       float fres = pow(1.0 - max(dot(n, vView), 0.0), 3.0);
-      vec3 glass = mix(vec3(0.015, 0.075, 0.07), vec3(0.05, 0.2, 0.19), fres + 0.25 * key);
-      glass = mix(glass, vec3(0.01, 0.045, 0.045), spandrel * 0.7);
+      vec3 glass = mix(vec3(0.012, 0.04, 0.1), vec3(0.05, 0.15, 0.3), fres + 0.25 * key);
+      glass = mix(glass, vec3(0.008, 0.026, 0.07), spandrel * 0.7);
       // rooms with the lights on
       float r = hash(vec2(ci, fi));
       float on = step(1.0 - 0.3 * uLit, r) * (1.0 - spandrel);
-      vec3 lamp = mix(vec3(0.42, 1.0, 0.86), vec3(1.0, 0.86, 0.6), step(0.55, hash(vec2(fi, ci * 1.7))));
+      vec3 lamp = mix(vec3(0.82, 0.92, 1.0), vec3(1.0, 0.82, 0.3), step(0.4, hash(vec2(fi, ci * 1.7))));
       glow = lamp * on * (0.55 + 0.45 * hash(vec2(ci * 3.1, fi * 2.3)));
-      col = mix(glass, vec3(0.1, 0.17, 0.16), mullion * 0.8);
+      col = mix(glass, vec3(0.1, 0.15, 0.24), mullion * 0.8);
     } else if (uKind > 0.5 && wall > 0.5) {
       // stone wall with a window in every bay
       float fx = fract(vFacade.x / 3.0);
@@ -170,13 +171,13 @@ const fragment = /* glsl */ `
       float win = step(0.26, fx) * step(fx, 0.74) * step(0.22, fy) * step(fy, 0.8) * step(1.0, fi);
       float r = hash(vec2(ci + 7.0, fi));
       float on = step(1.0 - 0.3 * uLit, r) * win;
-      vec3 lamp = mix(vec3(1.0, 0.86, 0.6), vec3(0.42, 1.0, 0.86), step(0.7, hash(vec2(fi * 1.3, ci))));
+      vec3 lamp = mix(vec3(1.0, 0.82, 0.3), vec3(0.82, 0.92, 1.0), step(0.7, hash(vec2(fi * 1.3, ci))));
       glow = lamp * on * 0.8;
-      col = mix(col, vec3(0.02, 0.06, 0.065), win);
+      col = mix(col, vec3(0.012, 0.035, 0.085), win);
     }
 
     col += glow * 0.62;
-    col += vec3(0.5, 0.89, 1.0) * band * 2.2;
+    col += vec3(1.0, 0.84, 0.16) * band * 2.4;
     gl_FragColor = vec4(col, 1.0);
   }
 `;
@@ -207,11 +208,11 @@ export default function Liwa({ state }: { state: React.RefObject<IntroState> }) 
     () => ({
       solid: [facadeMaterial(0, false), facadeMaterial(1, false), facadeMaterial(2, false)],
       ghost: [facadeMaterial(0, true), facadeMaterial(1, true), facadeMaterial(2, true)],
-      slab: new THREE.MeshBasicMaterial({ color: '#7fe3ff', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }),
-      slabEdge: new THREE.LineBasicMaterial({ color: '#7fe3ff', transparent: true, opacity: 0, depthWrite: false }),
-      zone: new THREE.MeshBasicMaterial({ color: '#7fe3ff', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }),
-      zoneEdge: new THREE.LineBasicMaterial({ color: '#d6f6ff', transparent: true, opacity: 0, depthWrite: false }),
-      core: new THREE.LineBasicMaterial({ color: '#4fa7c6', transparent: true, opacity: 0, depthWrite: false }),
+      slab: new THREE.MeshBasicMaterial({ color: '#dbe8ff', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }),
+      slabEdge: new THREE.LineBasicMaterial({ color: '#dbe8ff', transparent: true, opacity: 0, depthWrite: false }),
+      zone: new THREE.MeshBasicMaterial({ color: '#f3d004', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }),
+      zoneEdge: new THREE.LineBasicMaterial({ color: '#ffe24a', transparent: true, opacity: 0, depthWrite: false }),
+      core: new THREE.LineBasicMaterial({ color: '#a9c6f7', transparent: true, opacity: 0, depthWrite: false }),
     }),
     [],
   );
@@ -271,7 +272,7 @@ export default function Liwa({ state }: { state: React.RefObject<IntroState> }) 
     c.width = 1024;
     c.height = 160;
     const g = c.getContext('2d')!;
-    g.fillStyle = '#d8b662';
+    g.fillStyle = '#f3d004';
     g.font = '600 92px "Archivo Variable", Archivo, sans-serif';
     g.textBaseline = 'middle';
     g.textAlign = 'center';

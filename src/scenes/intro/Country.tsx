@@ -84,10 +84,10 @@ export default function Country({ geo, state }: { geo: GeoData; state: React.Ref
 
   const mats = useMemo(
     () => ({
-      borders: new THREE.LineBasicMaterial({ color: '#4b90aa', transparent: true, opacity: 0, depthWrite: false }),
-      neighbours: new THREE.LineBasicMaterial({ color: '#314656', transparent: true, opacity: 0, depthWrite: false }),
-      graticule: new THREE.LineBasicMaterial({ color: '#16222c', transparent: true, opacity: 0, depthWrite: false }),
-      dots: new THREE.PointsMaterial({ color: '#4fa7c6', size: 1.7, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false }),
+      borders: new THREE.LineBasicMaterial({ color: '#c6d8f7', transparent: true, opacity: 0, depthWrite: false }),
+      neighbours: new THREE.LineBasicMaterial({ color: '#6f8cc4', transparent: true, opacity: 0, depthWrite: false }),
+      graticule: new THREE.LineBasicMaterial({ color: '#2f5192', transparent: true, opacity: 0, depthWrite: false }),
+      dots: new THREE.PointsMaterial({ color: '#a9c6f7', size: 1.7, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false }),
     }),
     [],
   );
@@ -105,10 +105,10 @@ export default function Country({ geo, state }: { geo: GeoData; state: React.Ref
         if (!l) continue;
         l.geometry.instanceCount = shown;
         l.visible = shown > 0 && far > 0.002;
-        l.material.opacity = (set === glow.current ? 0.11 : 1) * far;
+        l.material.opacity = (set === glow.current ? 0.2 : 1) * far;
       }
     }
-    mats.borders.opacity = 0.55 * s.detail * far;
+    mats.borders.opacity = 0.42 * s.detail * far;
     mats.neighbours.opacity = 0.8 * s.detail * far;
     mats.dots.opacity = 0.62 * s.detail * THREE.MathUtils.smoothstep(s.alt, 60000, 240000);
     mats.graticule.opacity = (0.5 + 0.5 * s.detail) * far;
@@ -122,8 +122,8 @@ export default function Country({ geo, state }: { geo: GeoData; state: React.Ref
       <lineSegments geometry={borders} material={mats.borders} />
       {rings.map((pts, i) => (
         <group key={i}>
-          <Line ref={(l) => void (glow.current[i] = l as Line2 | null)} points={pts} color="#7fe3ff" lineWidth={5} transparent opacity={0.11} depthWrite={false} />
-          <Line ref={(l) => void (lines.current[i] = l as Line2 | null)} points={pts} color="#b9f1ff" lineWidth={1.5} transparent depthWrite={false} />
+          <Line ref={(l) => void (glow.current[i] = l as Line2 | null)} points={pts} color="#f3d004" lineWidth={6} transparent opacity={0.2} depthWrite={false} />
+          <Line ref={(l) => void (lines.current[i] = l as Line2 | null)} points={pts} color="#ffe24a" lineWidth={1.7} transparent depthWrite={false} />
         </group>
       ))}
     </group>

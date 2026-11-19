@@ -136,11 +136,10 @@ export default function Intro() {
           Mohammad Umar · Bilal Feroz · Aamir Koily
           <span>Supervisor: Zaid Hadya</span>
         </p>
+        <p className="intro-fine">
+          Software-only proof of concept on a simulated zone. Results are modelled, not measured at Liwa University. Map data © OpenStreetMap contributors, Natural Earth.
+        </p>
       </section>
-
-      <p className="intro-fine">
-        Software-only proof of concept on a simulated zone. Results are modelled, not measured at Liwa University. Map data © OpenStreetMap contributors, Natural Earth.
-      </p>
       <div className="intro-veil" />
     </div>
   );

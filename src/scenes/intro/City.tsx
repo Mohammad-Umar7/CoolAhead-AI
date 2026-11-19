@@ -77,11 +77,11 @@ const blockFragment = /* glsl */ `
     float along = dot(vWorld - cameraPosition, axis) / dot(axis, axis);
     float off = length(vWorld - (cameraPosition + axis * clamp(along, 0.0, 1.0)));
     if (uClear > 0.5 && along > -0.2 && along < 0.86 && off < 46.0 + 70.0 * (1.0 - along)) discard;
-    // unlit and graded by height: a massing model at night
-    vec3 low = vec3(0.0035, 0.0065, 0.01);
-    vec3 high = vec3(0.016, 0.027, 0.038);
+    // unlit and graded by height: a massing model in the university's navy
+    vec3 low = vec3(0.005, 0.016, 0.062);
+    vec3 high = vec3(0.022, 0.058, 0.18);
     float near = 1.0 - smoothstep(100.0, 800.0, length(vWorld.xz - uFocus.xz));
-    vec3 col = mix(low, high, vShade) * (0.5 + 0.9 * near);
+    vec3 col = mix(low, high, vShade) * (0.62 + 0.7 * near);
     gl_FragColor = vec4(col, uOpacity);
   }
 `;
@@ -107,18 +107,18 @@ export default function City({ city, state }: { city: CityData; state: React.Ref
 
   const mats = useMemo(
     () => ({
-      coast: new THREE.LineBasicMaterial({ color: '#3fb6d6', transparent: true, opacity: 0, depthWrite: false }),
-      arterials: new THREE.LineBasicMaterial({ color: '#d8b662', transparent: true, opacity: 0, depthWrite: false }),
-      links: new THREE.LineBasicMaterial({ color: '#8a7a4d', transparent: true, opacity: 0, depthWrite: false }),
-      main: new THREE.LineBasicMaterial({ color: '#d8b662', transparent: true, opacity: 0, depthWrite: false }),
-      minor: new THREE.LineBasicMaterial({ color: '#4a6274', transparent: true, opacity: 0, depthWrite: false }),
+      coast: new THREE.LineBasicMaterial({ color: '#a9c6f7', transparent: true, opacity: 0, depthWrite: false }),
+      arterials: new THREE.LineBasicMaterial({ color: '#f3d004', transparent: true, opacity: 0, depthWrite: false }),
+      links: new THREE.LineBasicMaterial({ color: '#c9a61a', transparent: true, opacity: 0, depthWrite: false }),
+      main: new THREE.LineBasicMaterial({ color: '#f3d004', transparent: true, opacity: 0, depthWrite: false }),
+      minor: new THREE.LineBasicMaterial({ color: '#7f9fd8', transparent: true, opacity: 0, depthWrite: false }),
       blocks: new THREE.ShaderMaterial({
         vertexShader: blockVertex,
         fragmentShader: blockFragment,
         uniforms: { uOpacity: { value: 1 }, uFocus: { value: new THREE.Vector3(CAMPUS.east, 18, -CAMPUS.north) }, uClear: { value: 0 } },
         transparent: true,
       }),
-      edges: new THREE.LineBasicMaterial({ color: '#4d7186', transparent: true, opacity: 0, depthWrite: false }),
+      edges: new THREE.LineBasicMaterial({ color: '#b9d2f5', transparent: true, opacity: 0, depthWrite: false }),
     }),
     [],
   );
@@ -135,7 +135,7 @@ export default function City({ city, state }: { city: CityData; state: React.Ref
     mats.links.opacity = 0.4 * island;
     const streets = 1 - smoothstep(alt, 2500, 9000);
     mats.main.opacity = 0.5 * streets;
-    mats.minor.opacity = 0.42 * streets;
+    mats.minor.opacity = 0.34 * streets;
     const rise = 1 - smoothstep(alt, 1500, 6000);
     if (blocks.current) {
       blocks.current.visible = rise > 0.001;
