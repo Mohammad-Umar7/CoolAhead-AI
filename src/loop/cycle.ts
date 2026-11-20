@@ -78,6 +78,55 @@ export const CUE = {
 };
 
 /**
+ * The outer loop. Some situations are not settled by the cooling alone: a
+ * cancelled class, a crowd nobody booked, a dead camera. Once the
+ * recommendation is out, the orchestrator calls a liaison agent, and that agent
+ * talks to the department that has to know. Nothing here touches the air
+ * handler. The departments are simulated.
+ */
+export const OUTREACH = new Set(['noshow', 'surge', 'camera']);
+/** Of those, the ones whose answer changes what Forecast knows: the orchestrator passes it on. */
+export const FEEDS = new Set(['noshow', 'surge']);
+
+const T = CUE.foot;
+export const TALK = {
+  /** the orchestrator calls the liaison agent; a message runs to the tile */
+  call: T,
+  /** the camera tile turns over into the conversation */
+  turn: T + TRAVEL,
+  /** each line of the conversation lands; the dots show for `dots` before it */
+  say: [T + 2700, T + 6000, T + 8700],
+  dots: [900, 1150, 800],
+  /** the outcome; it runs back to the orchestrator */
+  done: T + 10300,
+  /** the orchestrator repeats what came back */
+  report: T + 10300 + TRAVEL,
+  end: T + 13600,
+  travel: TRAVEL,
+};
+
+/** Where the conversation with a department has got to. */
+export function talkAt(time: number) {
+  const shown = TALK.say.filter((at) => time >= at).length;
+  const next = shown < TALK.say.length ? shown : -1;
+  return {
+    called: time >= TALK.call,
+    turned: time >= TALK.turn,
+    shown,
+    /** the line being typed, or -1 */
+    typing: next >= 0 && time >= TALK.say[next] - TALK.dots[next] ? next : -1,
+    done: time >= TALK.done,
+    reported: time >= TALK.report,
+    /** the call going out and the outcome coming back, 0..1 */
+    out: Math.min(1, Math.max(0, (time - TALK.call) / TRAVEL)),
+    back: Math.min(1, Math.max(0, (time - TALK.done) / TRAVEL)),
+    /** the orchestrator passing the answer on to Forecast, 0..1, and Forecast having it */
+    fed: Math.min(1, Math.max(0, (time - TALK.report) / TRAVEL)),
+    told: time >= TALK.report + TRAVEL,
+  };
+}
+
+/**
  * Vision checks the rooms one at a time. For a room: below 0 not checked yet,
  * 0..1 being checked, 1 done.
  */
@@ -128,6 +177,9 @@ export const SCENES: Scene[] = [
   ...DAY.events.map((ev) => sceneAt(ev.id, TITLES[ev.id].flag, TITLES[ev.id].title, ev.t)),
 ];
 
+/** When a situation has played out: after the recommendation, or after the talk with a department where there is one. */
+export const endOf = (scene: number) => (OUTREACH.has(SCENES[scene].id) ? TALK.end : CYCLE_MS);
+
 interface CycleState {
   scene: number;
   /** index into DAY.decisions */
@@ -177,7 +229,7 @@ export const useCycle = create<CycleState>((set, get) => ({
   step: (dir) => get().go(get().scene + dir),
   toggle: () => {
     const s = get();
-    if (!s.playing && s.time >= CYCLE_MS - 1) s.enter();
+    if (!s.playing && s.time >= endOf(s.scene) - 1) s.enter();
     else set({ playing: !s.playing });
   },
 }));
@@ -197,8 +249,9 @@ export function runCycle(done: (scene: number) => void) {
     const s = useCycle.getState();
     if (s.playing) {
       const time = s.time + dt;
-      if (time >= CYCLE_MS) {
-        useCycle.setState({ time: CYCLE_MS, playing: false });
+      const end = endOf(s.scene);
+      if (time >= end) {
+        useCycle.setState({ time: end, playing: false });
         done(s.scene);
       } else useCycle.setState({ time });
     }

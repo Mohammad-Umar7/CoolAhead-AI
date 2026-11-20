@@ -1246,3 +1246,280 @@
   padding: 0 13px 0 7px;
   font-size: 12.5px;
 }
+
+/* ---------- the outer loop: a liaison agent talks to a department ---------- */
+
+/* the camera turns away, edge on, and the conversation turns in from behind it */
+.room.turned {
+  opacity: 0;
+  transform: perspective(1400px) rotateY(86deg) scale(0.97);
+  pointer-events: none;
+  transition:
+    transform 0.48s cubic-bezier(0.55, 0, 0.9, 0.5),
+    opacity 0.1s 0.4s;
+}
+
+.desk {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  box-shadow: var(--shadow-lift);
+  overflow: hidden;
+  opacity: 0;
+  transform: perspective(1400px) rotateY(-86deg) scale(0.97);
+  pointer-events: none;
+  transition:
+    transform 0.4s cubic-bezier(0.55, 0, 0.9, 0.5),
+    opacity 0.1s 0.3s;
+}
+
+.desk.in {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition:
+    transform 0.8s 0.46s cubic-bezier(0.2, 1.3, 0.4, 1),
+    opacity 0.1s 0.46s;
+}
+
+/* who is talking to whom */
+.desk-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 42px;
+  padding: 0 13px 0 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.desk-head svg {
+  flex: none;
+  fill: none;
+  stroke: var(--ink-4);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.desk-agent {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 25px;
+  padding: 0 11px 0 9px;
+  border-radius: 999px;
+  background: var(--em);
+  color: #fff;
+  font-weight: 650;
+}
+
+.desk-agent i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f3d004;
+}
+
+.desk-dept {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.desk-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  font: 650 9px/1 var(--mono);
+  font-style: normal;
+  color: var(--ink-2);
+}
+
+.desk-head em {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* the conversation itself: the agent on the right, the department on the left */
+.desk-log {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px 9px;
+}
+
+.say {
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  max-width: 86%;
+  font-size: 13.5px;
+  line-height: 1.33;
+  animation: say 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+.say span {
+  padding: 6px 11px 7px;
+  border-radius: 14px;
+}
+
+.say.mine {
+  align-self: flex-end;
+  transform-origin: 100% 100%;
+}
+
+.say.mine span {
+  background: var(--em);
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+
+.say.theirs {
+  align-self: flex-start;
+  transform-origin: 0 100%;
+}
+
+.say.theirs span {
+  background: var(--paper-2);
+  color: var(--ink);
+  border-bottom-left-radius: 5px;
+}
+
+@keyframes say {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+}
+
+/* someone is typing */
+.say.dots span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 31px;
+  padding: 0 13px;
+}
+
+.say.dots b {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+  animation: dot 1s ease-in-out infinite;
+}
+
+.say.dots b:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.say.dots b:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes dot {
+  0%,
+  60%,
+  100% {
+    transform: none;
+    opacity: 0.35;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+/* what the conversation settled */
+.desk-done {
+  align-self: center;
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 12px 0 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(10, 168, 132, 0.45);
+  background: #eaf7f2;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0a7a5f;
+  opacity: 0;
+  transform: translateY(6px) scale(0.92);
+  transition:
+    opacity 0.4s,
+    transform 0.6s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+
+.desk-done.in {
+  opacity: 1;
+  transform: none;
+}
+
+.desk-done svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* the orchestrator has heard back and is quiet again, but what it heard stays readable */
+.orch.is-told .orch-id i::after {
+  animation: none;
+  opacity: 0;
+}
+
+/* a situation in which a department is told */
+.scenes .chip-talk {
+  margin-left: -2px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+  opacity: 0.55;
+}
+
+.scenes button.on .chip-talk {
+  opacity: 0.9;
+}
+
+/* Forecast has been given a department's answer: its guess is replaced, and the card keeps a quiet green edge */
+.agent.told {
+  border-color: rgba(10, 168, 132, 0.6);
+  box-shadow: 0 0 0 3px rgba(10, 168, 132, 0.16);
+}
+
+.agent-say.told {
+  animation: told 0.7s var(--ease) both;
+}
+
+@keyframes told {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(3px);
+  }
+}

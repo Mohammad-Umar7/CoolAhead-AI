@@ -7,7 +7,8 @@ import { ROOM_CLIP, emptyClip } from '../data/footage';
 import { MODE_LABEL } from '../lib/day';
 import { DAY } from '../state/sim';
 import Feed, { found, useTracks } from '../loop/Feed';
-import { AGENTS, CUE, SCENES, answered, asked, currentDecision, ease, phaseAt, progress, roomCheck, runCycle, sent, sub, useCue, useCycle, useOnce, useProgress } from '../loop/cycle';
+import { AGENTS, CUE, FEEDS, OUTREACH, SCENES, TALK, answered, asked, currentDecision, ease, endOf, phaseAt, progress, roomCheck, runCycle, sent, sub, talkAt, useCue, useCycle, useOnce, useProgress } from '../loop/cycle';
+import { liaisonFor, type Liaison } from '../loop/liaison';
 import { forecastWord, nextHour, plans, saving, script } from '../loop/story';
 
 /**
@@ -29,6 +30,8 @@ const HUB = ORCH.x + ORCH.w / 2;
 const CHECK = { camera: 'Cameras', occupied: 'Shared zone', comfort: 'Comfort', overcool: 'Overcooling', air: 'Fresh air', dwell: 'Run time' } as const;
 const BUSY = ['', 'Reading the timetable and the camera counts.', 'Trying each plan on a thermal model of the zone.', 'Holding the plan against six hard rules.'];
 const RANK: Record<Mode, number> = { OFF: 0, STANDBY: 0, REDUCED: 1, NORMAL: 2, PRECOOL: 3 };
+/** The camera tile above the recommendation: when a department has to be told, it turns over into that conversation. */
+const DESK = 2;
 
 if (import.meta.env.DEV) (window as unknown as { __cycle: typeof useCycle }).__cycle = useCycle;
 
@@ -41,8 +44,9 @@ const useTally = create<{ rooms: number[] }>(() => ({ rooms: [0, 0, 0] }));
 
 /* ---------------------------------------------------------------- vision: one camera per room, checked one at a time */
 
-function Room({ room, d }: { room: number; d: Decision }) {
+function Room({ room, d, turns }: { room: number; d: Decision; turns: boolean }) {
   const spec = ROOMS[room];
+  const away = useCycle((s) => turns && s.time >= TALK.turn);
   const online = d.vision.online[room];
   const count = online ? (d.vision.count[room] ?? 0) : 0;
   const clip = !online ? null : count >= 1 ? ROOM_CLIP[room] : emptyClip(room);
@@ -56,7 +60,7 @@ function Room({ room, d }: { room: number; d: Decision }) {
     useTally.setState((t) => ({ rooms: t.rooms.map((v, i) => (i === room ? (stage === 'off' ? 0 : shown) : v)) }));
   }, [room, shown, stage]);
   return (
-    <div className={`room ${stage}`} style={{ left: X[room], width: COL, height: VIDEO_H }}>
+    <div className={`room ${stage}${away ? ' turned' : ''}`} style={{ left: X[room], width: COL, height: VIDEO_H }}>
       <Feed clip={clip} tracks={tracks} count={count} online={online} reveal={() => sweep(room, useCycle.getState().time)} />
       <span className="room-name mono">
         CAM-0{room + 1}
@@ -112,6 +116,65 @@ function Rail({ d }: { d: Decision }) {
   );
 }
 
+/* ---------------------------------------------------------------- the outer loop: a liaison agent talks to a department */
+
+/**
+ * The conversation a liaison agent has with its department, once the
+ * recommendation is out. It takes the place of one camera tile, in the column
+ * where CoolAhead speaks to people. The departments are simulated.
+ */
+function Desk({ talk }: { talk: Liaison }) {
+  // redrawn only when the tile turns, a line lands or the dots change
+  useCycle((s) => {
+    const k = talkAt(s.time);
+    return `${k.turned ? 1 : 0}.${k.shown}.${k.typing}.${k.done ? 1 : 0}`;
+  });
+  const k = talkAt(useCycle.getState().time);
+  const mark = <i className="desk-mark">{talk.mark}</i>;
+  return (
+    <section className={`desk${k.turned ? ' in' : ''}`} style={{ left: X[DESK], width: COL, height: VIDEO_H }} aria-hidden={!k.turned}>
+      <header className="desk-head">
+        <span className="desk-agent">
+          <i />
+          {talk.agent}
+        </span>
+        <svg viewBox="0 0 20 12" width="18" height="11" aria-hidden="true">
+          <path d="M1.5 3.5h13m-2.6-2.6 2.6 2.6-2.6 2.6M18.5 8.5h-13m2.6 2.6-2.6-2.6 2.6-2.6" />
+        </svg>
+        <span className="desk-dept">
+          {mark}
+          {talk.dept}
+        </span>
+        <em className="mono">simulated</em>
+      </header>
+      <div className="desk-log">
+        {talk.lines.slice(0, k.shown).map((l, i) => (
+          <p key={i} className={`say ${l.who === 'agent' ? 'mine' : 'theirs'}`}>
+            {l.who === 'dept' && mark}
+            <span>{l.text}</span>
+          </p>
+        ))}
+        {k.typing >= 0 && (
+          <p key="dots" className={`say ${talk.lines[k.typing].who === 'agent' ? 'mine' : 'theirs'} dots`}>
+            {talk.lines[k.typing].who === 'dept' && mark}
+            <span>
+              <b />
+              <b />
+              <b />
+            </span>
+          </p>
+        )}
+        <p className={`desk-done${k.done ? ' in' : ''}`}>
+          <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true">
+            <path d="m2.6 6.3 2.3 2.3 4.6-5" />
+          </svg>
+          {talk.outcome}
+        </p>
+      </div>
+    </section>
+  );
+}
+
 /* ---------------------------------------------------------------- the lines the messages travel on */
 
 const cx = (room: number) => X[room] + COL / 2;
@@ -140,7 +203,12 @@ function Comet({ d, u, back }: { d: string; u: number; back: boolean }) {
 
 function Wires() {
   const time = useCycle((s) => s.time);
+  const scene = useCycle((s) => s.scene);
   const ph = phaseAt(time);
+  // the same line that reached the camera carries the call to the liaison agent, and the outcome back
+  const talk = OUTREACH.has(SCENES[scene].id) ? talkAt(time) : null;
+  // where the department's answer changes the next hour, the orchestrator passes it down to Forecast
+  const feeds = FEEDS.has(SCENES[scene].id);
   const seen = (at: number) => time >= at;
   const checking = ph.kind === 'work' && ph.agent === 0 ? Math.min(2, Math.floor(progress(0, time) * 3)) : -1;
 
@@ -159,14 +227,17 @@ function Wires() {
     <svg className="wires" width={CW} height={CH} aria-hidden="true">
       {TO_ROOM.map((pts, r) => (
         <g key={r} className={`strand${seen(CUE.rail) ? ' in' : ''}`}>
-          <path className={`wire${tone(0, checking < 0 || checking === r)}`} d={line(pts)} pathLength={1} />
+          <path className={`wire${r === DESK && talk?.called && !talk.reported ? ' live' : tone(0, checking < 0 || checking === r)}`} d={line(pts)} pathLength={1} />
           {message(line(pts), 0)}
+          {r === DESK && talk?.called && talk.out < 1 && <Comet d={line(pts)} u={ease(talk.out)} back={false} />}
+          {r === DESK && talk?.done && talk.back < 1 && <Comet d={line(pts)} u={ease(talk.back)} back />}
         </g>
       ))}
       {TO_CARD.map((pts, i) => (
         <g key={i} className={`strand${seen([CUE.forecast, CUE.optimizer, CUE.safety][i]) ? ' in' : ''}`}>
           <path className={`wire${tone(i + 1)}`} d={line(pts)} pathLength={1} />
           {message(line(pts), i + 1)}
+          {i === 0 && feeds && talk?.reported && talk.fed < 1 && <Comet d={line(pts)} u={ease(talk.fed)} back={false} />}
         </g>
       ))}
       <g className={`strand${seen(CUE.verdict) ? ' in' : ''}`}>
@@ -193,8 +264,16 @@ function Words({ text }: { text: string }) {
   );
 }
 
-function Orchestrator({ d }: { d: Decision }) {
+function Orchestrator({ d, talk }: { d: Decision; talk: Liaison | null }) {
   const ph = useCycle((s) => phaseAt(s.time));
+  // after the recommendation: calling a liaison agent, waiting while it talks, hearing what came back
+  const outer = useCycle((s) => {
+    if (!talk) return '';
+    const k = talkAt(s.time);
+    if (!k.called) return '';
+    if (k.reported) return s.time >= endOf(s.scene) ? 'told' : 'report';
+    return k.shown > 0 || k.typing >= 0 ? 'talk' : 'call';
+  });
   const room = useCycle((s) => {
     const p = progress(0, s.time);
     return p >= 0 && p < 1 ? Math.min(2, Math.floor(p * 3)) : -1;
@@ -205,7 +284,24 @@ function Orchestrator({ d }: { d: Decision }) {
 
   let route: ReactNode = null;
   let text = '';
-  if (ph.kind === 'boot') text = `New decision for zone ${ZONE.id}. It is ${fmtTime(d.t)}.`;
+  if (talk && outer === 'call') {
+    route = (
+      <>
+        calls <b>{talk.agent}</b>
+      </>
+    );
+    text = talk.why;
+  } else if (talk && outer === 'talk') {
+    route = (
+      <>
+        <b>{talk.agent}</b> is talking to
+      </>
+    );
+    text = `the ${talk.dept.charAt(0).toLowerCase()}${talk.dept.slice(1)}.`;
+  } else if (talk && outer) {
+    route = <em>{talk.agent} reports</em>;
+    text = talk.report;
+  } else if (ph.kind === 'boot') text = `New decision for zone ${ZONE.id}. It is ${fmtTime(d.t)}.`;
   else if (ph.kind === 'ask') {
     route = (
       <>
@@ -240,12 +336,12 @@ function Orchestrator({ d }: { d: Decision }) {
   } else text = 'Done. It runs again in 5 minutes, or at once if a count jumps or a camera drops.';
 
   return (
-    <div className={`orch is-${ph.kind}${solo ? ' solo' : ''}`} style={{ left: ORCH.x, top: ORCH.y, width: ORCH.w, height: ORCH.h }}>
+    <div className={`orch is-${outer === 'told' ? 'told' : outer ? 'talk' : ph.kind}${solo ? ' solo' : ''}`} style={{ left: ORCH.x, top: ORCH.y, width: ORCH.w, height: ORCH.h }}>
       <div className="orch-id">
         <i />
         <strong>Orchestrator</strong>
       </div>
-      <p className="orch-say" key={`${d.t}-${ph.kind}-${ph.agent}-${ph.kind === 'work' && ph.agent === 0 ? room : ''}`}>
+      <p className="orch-say" key={`${d.t}-${ph.kind}-${ph.agent}-${ph.kind === 'work' && ph.agent === 0 ? room : ''}-${outer === 'told' ? 'report' : outer}`}>
         {route && <span className="orch-route">{route}</span>}
         <Words text={text} />
       </p>
@@ -253,13 +349,18 @@ function Orchestrator({ d }: { d: Decision }) {
   );
 }
 
-function Forecast({ d }: { d: Decision }) {
+/** What a slot of the next hour is called once a department has explained it. */
+const EXPLAINED: Record<string, string> = { noshow: 'cancelled', unlisted: 'guest talk' };
+
+function Forecast({ d, talk }: { d: Decision; talk: Liaison | null }) {
   const p = useProgress(1);
   const here = useCue(CUE.forecast);
   const word = useMemo(() => forecastWord(d), [d]);
   const draw = p < 0 ? 0 : ease(sub(p, 0.05, 0.75));
+  // a department's answer, passed on by the orchestrator, replaces the guess
+  const told = useCycle((s) => !!talk?.forecast && talkAt(s.time).told);
   return (
-    <section className={`agent ${stateOf(p)} ${here ? 'in' : 'out'}`} style={{ left: CARD.x[0], top: CARD.y, width: CARD.w, height: CARD.h }}>
+    <section className={`agent ${stateOf(p)} ${here ? 'in' : 'out'}${told ? ' told' : ''}`} style={{ left: CARD.x[0], top: CARD.y, width: CARD.w, height: CARD.h }}>
       <header>
         <h3>Forecast</h3>
         <span>timetable, next hour</span>
@@ -271,14 +372,16 @@ function Forecast({ d }: { d: Decision }) {
             <i>
               {nextHour(room, d).map((s, k) => (
                 <b key={k} className={`${s.kind}${draw * 60 >= s.from ? ' in' : ''}`} style={{ left: `${(s.from / 60) * 100}%`, width: `${((s.to - s.from) / 60) * 100}%` }}>
-                  {s.to - s.from >= 18 ? s.label : ''}
+                  {s.to - s.from >= 18 ? (told && EXPLAINED[s.kind]) || s.label : ''}
                 </b>
               ))}
             </i>
           </div>
         ))}
       </div>
-      <p className={`agent-say${word.flag ? ' flag' : ''}${p >= 0.8 ? ' in' : ''}`}>{word.text}</p>
+      <p key={told ? 'told' : 'own'} className={`agent-say${told ? ' good told' : word.flag ? ' flag' : ''}${p >= 0.8 ? ' in' : ''}`}>
+        {told ? talk!.forecast : word.text}
+      </p>
     </section>
   );
 }
@@ -435,6 +538,7 @@ export default function Agents() {
   const [leaving, setLeaving] = useState(false);
   const navigate = useNavigate();
   const d = currentDecision(index);
+  const talk = useMemo(() => liaisonFor(SCENES[scene], d), [scene, d]);
 
   /** The decision is made: go and watch it run in the building. */
   const toBuilding = () => {
@@ -491,11 +595,12 @@ export default function Agents() {
       <section className="loop-canvas" style={{ width: CW, height: CH }}>
         <Wires />
         {ROOMS.map((_, room) => (
-          <Room key={room} room={room} d={d} />
+          <Room key={room} room={room} d={d} turns={!!talk && room === DESK} />
         ))}
+        {talk && <Desk key={talk.id} talk={talk} />}
         <Rail d={d} />
-        <Orchestrator d={d} />
-        <Forecast d={d} />
+        <Orchestrator d={d} talk={talk} />
+        <Forecast d={d} talk={talk} />
         <Optimizer d={d} />
         <Safety d={d} />
         <Verdict d={d} index={index} />
@@ -504,9 +609,14 @@ export default function Agents() {
       <footer className={`loop-foot${controls ? '' : ' hid'}`} style={{ width: CW }}>
         <div className="scenes" role="group" aria-label="Situations of the test day">
           {SCENES.map((s, i) => (
-            <button key={s.id} className={i === scene ? 'on' : ''} onClick={() => useCycle.getState().go(i)}>
+            <button key={s.id} className={i === scene ? 'on' : ''} onClick={() => useCycle.getState().go(i)} title={OUTREACH.has(s.id) ? 'A liaison agent talks to a department in this one' : undefined}>
               <b>{i + 1}</b>
               {s.flag}
+              {OUTREACH.has(s.id) && (
+                <svg className="chip-talk" viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
+                  <path d="M2 3.2h10v6.2H6.4L3.8 11.8V9.4H2z" />
+                </svg>
+              )}
             </button>
           ))}
         </div>
