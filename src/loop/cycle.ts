@@ -137,14 +137,17 @@ interface CycleState {
   playing: boolean;
   /** the first pass after arriving: the picture builds up piece by piece */
   first: boolean;
-  /** start over from the top, as when the page is opened */
+  /** start over from the top, as on the first visit or Replay */
   enter: () => void;
+  /** the page is opened: the first visit starts from the top, a later one finds the decision where it was left */
+  arrive: () => void;
   go: (scene: number) => void;
   step: (dir: number) => void;
   toggle: () => void;
 }
 
 const pin = (scene: number) => useSim.getState().jump(Math.max(VIEW_START, SCENES[scene].t) + 0.01, false);
+let arrived = false;
 
 export const useCycle = create<CycleState>((set, get) => ({
   scene: 0,
@@ -155,6 +158,15 @@ export const useCycle = create<CycleState>((set, get) => ({
   enter: () => {
     pin(get().scene);
     set({ decision: SCENES[get().scene].decision, time: 0, playing: true, first: true });
+  },
+  arrive: () => {
+    if (!arrived) {
+      arrived = true;
+      get().enter();
+      return;
+    }
+    // the twin moves the shared day clock, so put it back on this decision; the picture itself is left alone
+    pin(get().scene);
   },
   go: (scene) => {
     const s = ((scene % SCENES.length) + SCENES.length) % SCENES.length;

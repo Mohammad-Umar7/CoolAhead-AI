@@ -443,8 +443,8 @@ export default function Agents() {
   };
 
   useEffect(() => {
-    // arriving here starts the picture from nothing and pins the shared clock to the decision being shown
-    useCycle.getState().enter();
+    // the first visit builds the picture from nothing; coming back from another page keeps it where it was left
+    useCycle.getState().arrive();
     if (import.meta.env.DEV) {
       // for checking a moment of the sequence: #/agents?scene=2&at=20000
       const q = new URLSearchParams(window.location.hash.split('?')[1] ?? '');
