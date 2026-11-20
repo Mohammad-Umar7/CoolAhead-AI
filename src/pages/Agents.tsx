@@ -601,6 +601,28 @@ function Transport() {
   );
 }
 
+/** Jumps a decision straight to its end, the talk with a department included. */
+const skipToEnd = () => {
+  const c = useCycle.getState();
+  useCycle.setState({ time: endOf(c.scene), playing: false });
+};
+
+/**
+ * Skip: there in every situation for as long as its decision is still playing out, for when the story is
+ * already known and only the outcome is wanted. It folds away once there is nothing left to skip.
+ */
+function Skip() {
+  const live = useCycle((s) => s.time < endOf(s.scene) - 1);
+  return (
+    <button className={`skip${live ? '' : ' gone'}`} onClick={skipToEnd} tabIndex={live ? 0 : -1} aria-hidden={!live} title="Jump to the end of this decision (S)">
+      Skip
+      <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+        <path d="M3.5 3.6 9.2 8l-5.7 4.4zM12.2 3.6v8.8" />
+      </svg>
+    </button>
+  );
+}
+
 export default function Agents() {
   const scene = useCycle((s) => s.scene);
   const index = useCycle((s) => s.decision);
@@ -638,6 +660,7 @@ export default function Agents() {
       } else if (e.key === 'ArrowRight') c.step(1);
       else if (e.key === 'ArrowLeft') c.step(-1);
       else if (e.key === 'r' || e.key === 'R') c.enter();
+      else if (e.key === 's' || e.key === 'S' || e.key === 'End') skipToEnd();
       else if (e.key === 'Enter') toBuilding();
       else if (e.key >= '1' && e.key <= String(SCENES.length)) c.go(Number(e.key) - 1);
     };
@@ -663,8 +686,11 @@ export default function Agents() {
             {SCENES[scene].title}
           </h1>
         </div>
-        <div className={controls ? '' : 'hid'}>
-          <Transport />
+        <div className="head-ctl">
+          <div className={controls ? '' : 'hid'}>
+            <Transport />
+          </div>
+          <Skip />
         </div>
       </header>
 
