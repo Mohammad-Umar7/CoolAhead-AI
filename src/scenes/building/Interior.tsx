@@ -25,21 +25,26 @@ const color = new THREE.Color();
 const WALKERS = 44;
 const PACE = 3.4;
 
-/** A detection box as the eight corners of a unit cube: the frame a tracker draws round each person it has found. */
+/**
+ * A detection box: the flat frame a tracker draws round each person it has found, a thin outline with
+ * heavier corners, sized for someone seated. Each frame is turned to face the camera, as on a video feed.
+ */
+const BOX_W = 0.72;
+const BOX_H = 1.3;
 function bracketGeometry() {
   const bag = new Bag();
-  const t = 0.022;
-  const len = 0.22;
+  const t = 0.05;
+  const c = 0.1;
+  const len = 0.3;
+  const d = 0.002;
+  bag.box(BOX_W, t, d, 0, BOX_H / 2 - t / 2, 0);
+  bag.box(BOX_W, t, d, 0, -BOX_H / 2 + t / 2, 0);
+  bag.box(t, BOX_H, d, -BOX_W / 2 + t / 2, 0, 0);
+  bag.box(t, BOX_H, d, BOX_W / 2 - t / 2, 0, 0);
   for (const sx of [-1, 1]) {
     for (const sy of [-1, 1]) {
-      for (const sz of [-1, 1]) {
-        const x = sx * 0.5;
-        const y = sy * 0.5;
-        const z = sz * 0.5;
-        bag.box(len, t, t, x - (sx * len) / 2, y, z);
-        bag.box(t, len, t, x, y - (sy * len) / 2, z);
-        bag.box(t, t, len, x, y, z - (sz * len) / 2);
-      }
+      bag.box(len, c, d, sx * (BOX_W / 2 - len / 2), sy * (BOX_H / 2 - c / 2), 0);
+      bag.box(c, len, d, sx * (BOX_W / 2 - c / 2), sy * (BOX_H / 2 - len / 2), 0);
     }
   }
   return bag.done();
@@ -447,17 +452,20 @@ export default function Interior({ look }: { look: React.RefObject<Look> }) {
       counted.current[r] = n;
     }
     let b = 0;
+    // the frames face the camera, like the boxes on a camera feed
+    const facing = state.camera.quaternion;
     const tag = (x: number, y: number, z: number, sx: number, sy: number) => {
-      tmp.rotation.set(0, 0, 0);
+      tmp.quaternion.copy(facing);
       tmp.position.set(x, y, z);
-      tmp.scale.set(sx, sy, sx);
+      tmp.scale.set(sx, sy, 1);
       tmp.updateMatrix();
       boxes.current!.setMatrixAt(b++, tmp.matrix);
+      tmp.rotation.set(0, 0, 0);
     };
     for (let i = 0; i < seats.length; i++) {
       const s = seats[i];
       const e = shown.current[i];
-      if (e > 0.5 && f.online[s.room]) tag(s.x, 0.74, s.z, 0.66 * e, 1.24 * e);
+      if (e > 0.5 && f.online[s.room]) tag(s.x, 0.74, s.z, e, e);
     }
     walkers.current.forEach((w, i) => {
       let scale = 0.0001;
@@ -489,7 +497,7 @@ export default function Interior({ look }: { look: React.RefObject<Look> }) {
           tmp.updateMatrix();
           strollerHeads.current!.setMatrixAt(i, tmp.matrix);
           strollers.current!.setColorAt(i, color.set(CLOTHES[w.tone]));
-          if (scale > 0.5 && f.online[w.room]) tag(x, 0.92, z, 0.62, 1.84);
+          if (scale > 0.5 && f.online[w.room]) tag(x, 0.92, z, 0.86, 1.42);
           return;
         }
       }
@@ -677,7 +685,7 @@ export default function Interior({ look }: { look: React.RefObject<Look> }) {
         <meshStandardMaterial color="#d9b99b" roughness={0.7} />
       </instancedMesh>
       <instancedMesh ref={boxes} args={[bracket, undefined, seats.length + WALKERS]} frustumCulled={false} renderOrder={5}>
-        <meshBasicMaterial color="#00e0a4" toneMapped={false} />
+        <meshBasicMaterial color="#00e0a4" toneMapped={false} depthTest={false} transparent opacity={0.92} />
       </instancedMesh>
       <instancedMesh ref={heads} args={[undefined, undefined, seats.length]} castShadow>
         <sphereGeometry args={[0.125, 18, 14]} />

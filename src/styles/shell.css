@@ -443,6 +443,14 @@
   color: var(--ink-4);
 }
 
+.rb-hours span {
+  transition: opacity 0.25s;
+}
+
+.rb-hours span.near {
+  opacity: 0;
+}
+
 .rb-hours span:first-child {
   transform: none;
 }

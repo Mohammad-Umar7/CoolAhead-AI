@@ -142,21 +142,21 @@
 
 /* the tally: what the cameras count, room by room */
 
-.tally {
+.twin-card .tally {
   margin-top: 12px;
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.tally strong {
+.twin-card .tally strong {
   font-size: 68px;
   font-weight: 750;
   line-height: 0.9;
   color: #07906e;
 }
 
-.tally span {
+.twin-card .tally span {
   font-size: 13.5px;
   line-height: 1.35;
   color: var(--ink-2);

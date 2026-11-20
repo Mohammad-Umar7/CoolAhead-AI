@@ -82,7 +82,7 @@ export default function Ribbon({ width, t, flags = [], active = -1, onFlag, onPi
       <div className="rb-cursor" style={{ left: pct(t) }} data-t={fmtTime(t)} />
       <div className="rb-hours">
         {HOURS.map((h) => (
-          <span key={h} style={{ left: pct(h * 60) }}>
+          <span key={h} className={Math.abs(h * 60 - t) < 34 ? 'near' : undefined} style={{ left: pct(h * 60) }}>
             {String(h).padStart(2, '0')}:00
           </span>
         ))}
