@@ -626,3 +626,15 @@
   font-weight: 600;
   color: var(--hot);
 }
+
+/* the air handler's label says what its one fan is doing */
+.tag.room.ahu em {
+  border-left-color: rgba(255, 255, 255, 0.22);
+  color: #7fe3c1;
+}
+
+/* how the air is drawn */
+.twin-legend .twin-air {
+  margin-top: 6px;
+  color: var(--ink-3);
+}

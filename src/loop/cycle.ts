@@ -200,6 +200,8 @@ interface CycleState {
 
 const pin = (scene: number) => useSim.getState().jump(Math.max(VIEW_START, SCENES[scene].t) + 0.01, false);
 let arrived = false;
+/** Whether the agents page has been opened before in this visit: coming back to it must not replay what is already there. */
+export const hasArrived = () => arrived;
 
 export const useCycle = create<CycleState>((set, get) => ({
   scene: 0,

@@ -8,7 +8,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 14px;
   padding: 10px 0 12px;
 }
 
@@ -1522,4 +1522,134 @@
     transform: translateY(6px);
     filter: blur(3px);
   }
+}
+
+/* ---------- the liaison agents, on call under the specialists ---------- */
+
+.roster {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition:
+    opacity 0.6s 0.5s,
+    transform 0.8s 0.5s var(--ease),
+    filter 0.6s 0.5s;
+}
+
+.roster-k {
+  flex: none;
+  width: 60px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.roster-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 14px 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--ink-3);
+  transition:
+    background 0.45s var(--ease),
+    border-color 0.45s,
+    color 0.45s,
+    box-shadow 0.45s;
+}
+
+.roster-pill b {
+  font-weight: 650;
+  color: var(--ink);
+  transition: color 0.45s;
+}
+
+.roster-pill i {
+  position: relative;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-4);
+  transition: background 0.45s;
+}
+
+.roster-pill svg {
+  flex: none;
+  fill: none;
+  stroke: var(--ink-4);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.roster-pill em {
+  font-style: normal;
+  font-weight: 600;
+  animation: word 0.5s var(--ease) both;
+}
+
+/* called by the orchestrator, and talking */
+.roster-pill.live {
+  border-color: var(--em);
+  background: var(--em);
+  color: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 24px -14px rgba(15, 21, 34, 0.8);
+}
+
+.roster-pill.live b {
+  color: #fff;
+}
+
+.roster-pill.live i {
+  background: #f3d004;
+}
+
+.roster-pill.live i::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid #f3d004;
+  animation: ring 1.6s ease-out infinite;
+}
+
+.roster-pill.live svg {
+  stroke: rgba(255, 255, 255, 0.5);
+}
+
+/* back, with what it settled */
+.roster-pill.done {
+  border-color: rgba(10, 168, 132, 0.45);
+  background: #eaf7f2;
+  color: #0a7a5f;
+}
+
+.roster-pill.done b {
+  color: #0a5a46;
+}
+
+.roster-pill.done i {
+  background: #0aa884;
+}
+
+/* ---------- opened again: what was already on the page is simply there ---------- */
+
+.orch.still,
+.orch-say.still .word,
+.orch-say.still .orch-route,
+.agent.in.still,
+.agent-say.told.still,
+.say.still,
+.loop-head h1.still,
+.loop.back .feed video,
+.loop.back .roster-pill em {
+  animation: none;
 }

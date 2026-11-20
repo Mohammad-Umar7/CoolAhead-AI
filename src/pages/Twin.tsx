@@ -186,6 +186,8 @@ function Tags({ els, scope, layer }: { els: React.RefObject<AnchorEls>; scope: S
   const pin = (key: string) => (el: HTMLDivElement | null) => {
     els.current[key] = el;
   };
+  // what the one fan is doing at this minute, for the label on the air handler
+  const airflow = Math.round(DAY.cool.flow[Math.min(DAY.steps, Math.max(0, minute - DAY.t0))] * 100);
   return (
     <div className={`twin-tags is-${scope}`} aria-hidden="true">
       <div className="tag-pin for-building" ref={pin('live')}>
@@ -221,6 +223,7 @@ function Tags({ els, scope, layer }: { els: React.RefObject<AnchorEls>; scope: S
           <i />
           <b>AHU-3A</b>
           <span>one air handler for all three</span>
+          <em>{airflow > 0 ? `${airflow}% airflow` : 'fan off'}</em>
         </span>
       </div>
     </div>
@@ -242,6 +245,7 @@ function Legend({ layer }: { layer: Layer }) {
             <span>{layer === 'heat' ? 'Full' : 'Warm'}</span>
           </div>
           <p>{layer === 'heat' ? 'How full each room is, from the camera counts' : `Room air. Comfort is ${COMFORT_LO} to ${COMFORT_HI} °C, the green part`}</p>
+          {layer !== 'heat' && <p className="twin-air">Blue streams are the cold air. They turn pale in a room nobody is in: it still gets its share.</p>}
         </>
       )}
       <ul>

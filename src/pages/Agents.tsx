@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { create } from 'zustand';
 import { COMFORT_HI, MODES, ROOMS, ZONE, fmtTime } from '../engine/config';
@@ -7,8 +7,8 @@ import { ROOM_CLIP, emptyClip } from '../data/footage';
 import { MODE_LABEL } from '../lib/day';
 import { DAY } from '../state/sim';
 import Feed, { found, useTracks } from '../loop/Feed';
-import { AGENTS, CUE, FEEDS, OUTREACH, SCENES, TALK, answered, asked, currentDecision, ease, endOf, phaseAt, progress, roomCheck, runCycle, sent, sub, talkAt, useCue, useCycle, useOnce, useProgress } from '../loop/cycle';
-import { liaisonFor, type Liaison } from '../loop/liaison';
+import { AGENTS, CUE, FEEDS, OUTREACH, SCENES, TALK, answered, asked, currentDecision, ease, endOf, hasArrived, phaseAt, progress, roomCheck, runCycle, sent, sub, talkAt, useCue, useCycle, useOnce, useProgress } from '../loop/cycle';
+import { LIAISONS, liaisonFor, type Liaison } from '../loop/liaison';
 import { forecastWord, nextHour, plans, saving, script } from '../loop/story';
 
 /**
@@ -25,7 +25,9 @@ const RAIL_Y = 283;
 const ORCH = { x: 0, y: 304, w: 904, h: 60 };
 const CARD = { y: 398, h: 158, w: 284, x: [0, 310, 620] };
 const OUT = { x: 944, y: 304, w: 432, h: CARD.y + CARD.h - 304 };
-const CH = CARD.y + CARD.h;
+/** under the specialists: the liaison agents, on call */
+const LANE = { y: CARD.y + CARD.h + 12, h: 30 };
+const CH = LANE.y + LANE.h;
 const HUB = ORCH.x + ORCH.w / 2;
 const CHECK = { camera: 'Cameras', occupied: 'Shared zone', comfort: 'Comfort', overcool: 'Overcooling', air: 'Fresh air', dwell: 'Run time' } as const;
 const BUSY = ['', 'Reading the timetable and the camera counts.', 'Trying each plan on a thermal model of the zone.', 'Holding the plan against six hard rules.'];
@@ -36,6 +38,21 @@ const DESK = 2;
 if (import.meta.env.DEV) (window as unknown as { __cycle: typeof useCycle }).__cycle = useCycle;
 
 const stateOf = (p: number) => (p < 0 ? 'wait' : p < 1 ? 'work' : 'done');
+
+/**
+ * True when the page has been opened again on a decision that was already under way or finished. What is
+ * already part of the picture is then simply there, without its entrance; only what arrives later animates.
+ */
+const Back = createContext(false);
+/** Whether a part that is `here` should skip its entrance: it was already here when the page was opened again. */
+function useStill(here: boolean) {
+  const back = useContext(Back);
+  const [still, setStill] = useState(back && here);
+  useEffect(() => {
+    if (!here) setStill(false);
+  }, [here]);
+  return still;
+}
 /** How far the detector's sweep has crossed a room's picture while that room is being checked. */
 const sweep = (room: number, time: number) => ease(sub(roomCheck(room, time), 0.24, 0.9));
 
@@ -130,6 +147,12 @@ function Desk({ talk }: { talk: Liaison }) {
     return `${k.turned ? 1 : 0}.${k.shown}.${k.typing}.${k.done ? 1 : 0}`;
   });
   const k = talkAt(useCycle.getState().time);
+  // lines that were already said when the page was opened again do not pop in a second time
+  const back = useContext(Back);
+  const [said, setSaid] = useState(back ? k.shown : 0);
+  useEffect(() => {
+    if (k.shown < said) setSaid(0);
+  }, [k.shown, said]);
   const mark = <i className="desk-mark">{talk.mark}</i>;
   return (
     <section className={`desk${k.turned ? ' in' : ''}`} style={{ left: X[DESK], width: COL, height: VIDEO_H }} aria-hidden={!k.turned}>
@@ -149,7 +172,7 @@ function Desk({ talk }: { talk: Liaison }) {
       </header>
       <div className="desk-log">
         {talk.lines.slice(0, k.shown).map((l, i) => (
-          <p key={i} className={`say ${l.who === 'agent' ? 'mine' : 'theirs'}`}>
+          <p key={i} className={`say ${l.who === 'agent' ? 'mine' : 'theirs'}${i < said ? ' still' : ''}`}>
             {l.who === 'dept' && mark}
             <span>{l.text}</span>
           </p>
@@ -172,6 +195,43 @@ function Desk({ talk }: { talk: Liaison }) {
         </p>
       </div>
     </section>
+  );
+}
+
+/**
+ * The liaison agents, always in sight under the specialists: on call until a
+ * situation needs one of them, lit while it talks, and showing what it settled.
+ */
+function Roster({ talk }: { talk: Liaison | null }) {
+  const here = useOnce(CUE.verdict);
+  const stage = useCycle((s) => {
+    if (!talk) return '';
+    const k = talkAt(s.time);
+    return !k.called ? '' : k.done ? 'done' : 'live';
+  });
+  return (
+    <div className={`roster${here ? '' : ' hid'}`} style={{ left: ORCH.x, top: LANE.y, width: ORCH.w, height: LANE.h }}>
+      <span className="roster-k mono">On call</span>
+      {LIAISONS.map((a) => {
+        const mine = talk?.id === a.id ? stage : '';
+        return (
+          <span key={a.id} className={`roster-pill${mine ? ` ${mine}` : ''}`}>
+            <i />
+            <b>{a.agent}</b>
+            {mine === 'done' ? (
+              <em>{talk!.outcome}</em>
+            ) : (
+              <>
+                <svg viewBox="0 0 12 10" width="11" height="9" aria-hidden="true">
+                  <path d="M1 5h9.4M7.2 1.8 10.4 5 7.2 8.2" />
+                </svg>
+                {a.dept}
+              </>
+            )}
+          </span>
+        );
+      })}
+    </div>
   );
 }
 
@@ -279,6 +339,7 @@ function Orchestrator({ d, talk }: { d: Decision; talk: Liaison | null }) {
     return p >= 0 && p < 1 ? Math.min(2, Math.floor(p * 3)) : -1;
   });
   const solo = useCycle((s) => s.first && s.time < CUE.rail);
+  const back = useContext(Back);
   const lines = useMemo(() => script(d), [d]);
   const name = ph.agent >= 0 && ph.agent < 4 ? AGENTS[ph.agent].name : '';
 
@@ -335,13 +396,18 @@ function Orchestrator({ d, talk }: { d: Decision; talk: Liaison | null }) {
     text = lines.final;
   } else text = 'Done. It runs again in 5 minutes, or at once if a count jumps or a camera drops.';
 
+  const saying = `${d.t}-${ph.kind}-${ph.agent}-${ph.kind === 'work' && ph.agent === 0 ? room : ''}-${outer === 'told' ? 'report' : outer}`;
+  // the sentence that was on the bar when the page was opened again is not written out a second time
+  const first = useRef(saying);
+  const quiet = back && saying === first.current;
+
   return (
-    <div className={`orch is-${outer === 'told' ? 'told' : outer ? 'talk' : ph.kind}${solo ? ' solo' : ''}`} style={{ left: ORCH.x, top: ORCH.y, width: ORCH.w, height: ORCH.h }}>
+    <div className={`orch is-${outer === 'told' ? 'told' : outer ? 'talk' : ph.kind}${solo ? ' solo' : ''}${back ? ' still' : ''}`} style={{ left: ORCH.x, top: ORCH.y, width: ORCH.w, height: ORCH.h }}>
       <div className="orch-id">
         <i />
         <strong>Orchestrator</strong>
       </div>
-      <p className="orch-say" key={`${d.t}-${ph.kind}-${ph.agent}-${ph.kind === 'work' && ph.agent === 0 ? room : ''}-${outer === 'told' ? 'report' : outer}`}>
+      <p className={`orch-say${quiet ? ' still' : ''}`} key={saying}>
         {route && <span className="orch-route">{route}</span>}
         <Words text={text} />
       </p>
@@ -359,8 +425,10 @@ function Forecast({ d, talk }: { d: Decision; talk: Liaison | null }) {
   const draw = p < 0 ? 0 : ease(sub(p, 0.05, 0.75));
   // a department's answer, passed on by the orchestrator, replaces the guess
   const told = useCycle((s) => !!talk?.forecast && talkAt(s.time).told);
+  const still = useStill(here);
+  const toldStill = useStill(told);
   return (
-    <section className={`agent ${stateOf(p)} ${here ? 'in' : 'out'}${told ? ' told' : ''}`} style={{ left: CARD.x[0], top: CARD.y, width: CARD.w, height: CARD.h }}>
+    <section className={`agent ${stateOf(p)} ${here ? 'in' : 'out'}${told ? ' told' : ''}${still ? ' still' : ''}`} style={{ left: CARD.x[0], top: CARD.y, width: CARD.w, height: CARD.h }}>
       <header>
         <h3>Forecast</h3>
         <span>timetable, next hour</span>
@@ -379,7 +447,7 @@ function Forecast({ d, talk }: { d: Decision; talk: Liaison | null }) {
           </div>
         ))}
       </div>
-      <p key={told ? 'told' : 'own'} className={`agent-say${told ? ' good told' : word.flag ? ' flag' : ''}${p >= 0.8 ? ' in' : ''}`}>
+      <p key={told ? 'told' : 'own'} className={`agent-say${told ? ' good told' : word.flag ? ' flag' : ''}${p >= 0.8 ? ' in' : ''}${toldStill ? ' still' : ''}`}>
         {told ? talk!.forecast : word.text}
       </p>
     </section>
@@ -393,8 +461,9 @@ function Optimizer({ d }: { d: Decision }) {
   const top = Math.max(0.5, ...rows.map((r) => r.c.energy));
   const judged = p >= 0.7;
   const settled = p >= 0.86;
+  const still = useStill(here);
   return (
-    <section className={`agent ${stateOf(p)} ${here ? 'in' : 'out'}`} style={{ left: CARD.x[1], top: CARD.y, width: CARD.w, height: CARD.h }}>
+    <section className={`agent ${stateOf(p)} ${here ? 'in' : 'out'}${still ? ' still' : ''}`} style={{ left: CARD.x[1], top: CARD.y, width: CARD.w, height: CARD.h }}>
       <header>
         <h3>Optimizer</h3>
         <span>energy, next hour</span>
@@ -424,8 +493,9 @@ function Safety({ d }: { d: Decision }) {
   const here = useCue(CUE.safety);
   const s = d.safety;
   const hit = s.checks.find((c) => c.status !== 'pass');
+  const still = useStill(here);
   return (
-    <section className={`agent ${stateOf(p)} ${here ? 'in' : 'out'}`} style={{ left: CARD.x[2], top: CARD.y, width: CARD.w, height: CARD.h }}>
+    <section className={`agent ${stateOf(p)} ${here ? 'in' : 'out'}${still ? ' still' : ''}`} style={{ left: CARD.x[2], top: CARD.y, width: CARD.w, height: CARD.h }}>
       <header>
         <h3>Safety</h3>
         <span>six hard rules</span>
@@ -536,6 +606,9 @@ export default function Agents() {
   const index = useCycle((s) => s.decision);
   const controls = useOnce(CUE.foot);
   const [leaving, setLeaving] = useState(false);
+  // read before `arrive` runs: the page is being opened again on a decision that has already been shown
+  const [back] = useState(() => hasArrived() && useCycle.getState().time > 0);
+  const title = useRef(useCycle.getState().decision);
   const navigate = useNavigate();
   const d = currentDecision(index);
   const talk = useMemo(() => liaisonFor(SCENES[scene], d), [scene, d]);
@@ -577,7 +650,8 @@ export default function Agents() {
   }, []);
 
   return (
-    <div className={`page loop${leaving ? ' leaving' : ''}`}>
+    <Back.Provider value={back}>
+    <div className={`page loop${leaving ? ' leaving' : ''}${back ? ' back' : ''}`}>
       <header className="loop-head" style={{ width: CW }}>
         <div>
           <p className="loop-when">
@@ -585,7 +659,9 @@ export default function Agents() {
             <i />
             {fmtTime(d.t)}
           </p>
-          <h1 key={d.t}>{SCENES[scene].title}</h1>
+          <h1 key={d.t} className={back && index === title.current ? 'still' : undefined}>
+            {SCENES[scene].title}
+          </h1>
         </div>
         <div className={controls ? '' : 'hid'}>
           <Transport />
@@ -604,6 +680,7 @@ export default function Agents() {
         <Optimizer d={d} />
         <Safety d={d} />
         <Verdict d={d} index={index} />
+        <Roster talk={talk} />
       </section>
 
       <footer className={`loop-foot${controls ? '' : ' hid'}`} style={{ width: CW }}>
@@ -628,5 +705,6 @@ export default function Agents() {
         </button>
       </footer>
     </div>
+    </Back.Provider>
   );
 }

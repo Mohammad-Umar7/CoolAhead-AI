@@ -29,6 +29,14 @@ export interface Liaison {
   forecast?: string;
 }
 
+/** The three liaison agents and the one department each of them talks to, in the order the day calls on them. */
+export const LIAISONS = [
+  { id: 'timetable', agent: 'Timetable agent', dept: "Registrar's office", mark: 'RO' },
+  { id: 'events', agent: 'Events agent', dept: 'Events office', mark: 'EO' },
+  { id: 'maintenance', agent: 'Maintenance agent', dept: 'Facilities desk', mark: 'FD' },
+] as const;
+const who = (id: Liaison['id']) => LIAISONS.find((a) => a.id === id)!;
+
 export function liaisonFor(scene: Scene, d: Decision): Liaison | null {
   if (!OUTREACH.has(scene.id)) return null;
 
@@ -36,10 +44,7 @@ export function liaisonFor(scene: Scene, d: Decision): Liaison | null {
     const out = SURPRISES.cameraOut;
     const room = ROOMS[out.room].id;
     return {
-      id: 'maintenance',
-      agent: 'Maintenance agent',
-      dept: 'Facilities desk',
-      mark: 'FD',
+      ...who('maintenance'),
       why: `The ${room} camera is down. Facilities has to know.`,
       lines: [
         { who: 'agent', text: `CAM-0${out.room + 1} in ${room} went dark at ${fmtTime(out.start)}, mid-class. Cooling is held on the timetable.` },
@@ -55,10 +60,7 @@ export function liaisonFor(scene: Scene, d: Decision): Liaison | null {
     const block = TIMETABLE[SURPRISES.noShowBlock];
     const room = ROOMS[block.room].id;
     return {
-      id: 'timetable',
-      agent: 'Timetable agent',
-      dept: "Registrar's office",
-      mark: 'RO',
+      ...who('timetable'),
       why: `${block.code} is on the timetable, but nobody came. The registrar should know.`,
       lines: [
         { who: 'agent', text: `${block.code} is listed in ${room} at ${fmtTime(block.start)}, but the room is empty. Cancelled?` },
@@ -75,10 +77,7 @@ export function liaisonFor(scene: Scene, d: Decision): Liaison | null {
   const room = ROOMS[surge.room].id;
   const seen = d.vision.count[surge.room] ?? surge.people;
   return {
-    id: 'events',
-    agent: 'Events agent',
-    dept: 'Events office',
-    mark: 'EO',
+    ...who('events'),
     why: `A crowd is in ${room} with nothing booked. The events office should know.`,
     lines: [
       { who: 'agent', text: `${seen} people just walked into ${room} and nothing is booked. Is this an event?` },
